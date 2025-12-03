@@ -1,0 +1,170 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/velodyne/protos/VelodyneHDL-64E.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/citroen/CitroenCZero.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/mercedes_benz/MercedesBenzSprinter.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.21656845005290926 0.12315088532592991 -0.9684688770864659 2.134806508719165
+  position 172.48261362006846 140.26248505770687 83.23610928069033
+}
+StraightRoadSegment {
+  length 300
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 -9.067892267509302e-11
+  hidden position2_0_0 2.9188560749827952e-08
+  hidden position_0_1 8.901977558341927e-11
+  hidden position2_0_1 2.9482395857982624e-08
+  hidden position_0_2 -0.00015461797177618308
+  hidden position_0_3 -0.00015461663010053224
+  hidden linearVelocity_0 -5.398939193004402e-06 4.3469812406468e-08 -3.9800047416482794e-05
+  hidden angularVelocity_0 -1.0745195324203268e-07 -1.3345595739224907e-05 9.019850864458781e-14
+  hidden rotation_1 4.5339242545989776e-11 -0.9999951743679727 0.0031066446156484107 2.9802322387695313e-08
+  hidden linearVelocity_1 -4.456747165388129e-06 3.588403792316866e-08 -4.1996507591703656e-07
+  hidden angularVelocity_1 -1.0491457232034605e-07 -1.3030498315278505e-05 -2.5264986752049115e-13
+  hidden rotation_2 4.4509684896880895e-11 0.9999954415785164 -0.003019407588941215 2.9802322387695313e-08
+  hidden linearVelocity_2 -4.456746690708968e-06 3.5883907936155424e-08 -4.1996416247980946e-07
+  hidden angularVelocity_2 -1.0491516359706343e-07 -1.3030498032386355e-05 4.570504137670343e-13
+  hidden rotation_3 0 1 0 0.00015461797277947062
+  hidden linearVelocity_3 -4.807051906520581e-06 3.8703648264056507e-08 -1.395131583932834e-06
+  hidden angularVelocity_3 -1.033688799609676e-07 -1.2838531683767573e-05 9.300447101614617e-14
+  hidden rotation_4 0 -1 0 0.00015461663146993827
+  hidden linearVelocity_4 -4.807051627510449e-06 3.8702662781815577e-08 -1.3951306711030117e-06
+  hidden angularVelocity_4 -1.0337029633178558e-07 -1.2838530901757718e-05 9.995295115498883e-14
+  translation 15.28579152390787 -1.9236315705798346 0.3169280850183906
+  rotation -0.0019592175216956364 -0.48670639674799215 -0.8735634177501304 0.009214652861179123
+  color 0.643137 0 0
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    VelodyneHDL-64E {
+      translation 0.3 0 0.15
+      enablePhysics FALSE
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+DEF vehicle_1 LincolnMKZSimple {
+  translation 41.9866582557025 -2 0.45
+  color 0 0.4 0.5
+  name "vehicle_1"
+  controller "supervisor"
+}
+DEF vehicle_opposite_dir_1 CitroenCZero {
+  hidden position_0_0 -1.651250231166475e-08
+  hidden position2_0_0 -0.000527799986702184
+  hidden position_0_1 -1.64424548427158e-08
+  hidden position2_0_1 -0.0005288173817602528
+  hidden position_0_2 7.961204442367684e-07
+  hidden position_0_3 7.92618539309625e-07
+  hidden linearVelocity_0 4.1674956293197846e-07 -4.650850307570826e-07 6.276875853806374e-06
+  hidden angularVelocity_0 1.073455715726546e-06 2.5865286292086815e-06 -1.4125061808593475e-09
+  hidden rotation_1 -8.25625115179183e-09 0.9999999995106078 3.128552924646647e-05 0.0005277999867188765
+  hidden linearVelocity_1 4.7457492179363605e-08 -3.0975969370479e-07 8.445689309178446e-08
+  hidden angularVelocity_1 1.0712362042429795e-06 1.7325597456883626e-07 -9.757766400759412e-10
+  hidden rotation_2 8.221227417383895e-09 -0.9999999995166166 3.1092878219815195e-05 0.0005288173814969299
+  hidden linearVelocity_2 4.242366043455868e-08 -3.098094381253429e-07 1.1290266911560829e-07
+  hidden angularVelocity_2 1.0712973937156795e-06 1.5557116249593275e-07 -9.687082445121491e-10
+  hidden rotation_3 0 -0.9999999999999999 0 7.963412532739327e-07
+  hidden linearVelocity_3 -1.0123753766551214e-06 -3.132731004446625e-07 1.4214196596647138e-07
+  hidden angularVelocity_3 1.0705727901901302e-06 -5.121283100249681e-06 -1.566367565622099e-10
+  hidden rotation_4 0 1 0 7.924280047600518e-07
+  hidden linearVelocity_4 -1.0074186533270327e-06 -3.133241165671917e-07 1.697997754504703e-07
+  hidden angularVelocity_4 1.070646824452333e-06 -5.0935144953531934e-06 -1.6116112431972484e-10
+  translation 172.20058923889832 1.7700406963067308 0.18043839425664832
+  rotation 0.002534571774631882 8.060867316178777e-05 0.9999967847189116 3.1415907691919434
+  name "vehicle_opposite_dir_1"
+  controller "supervisor_opposite"
+  synchronization FALSE
+}
+DEF vehicle_opposite_dir_2 MercedesBenzSprinter {
+  hidden position_0_0 8.122826107817579e-11
+  hidden position2_0_0 1.3339064881913925e-06
+  hidden position_0_1 -8.255941601639645e-11
+  hidden position2_0_1 1.333907753828727e-06
+  hidden position_0_2 0.00018917107436407457
+  hidden position_0_3 0.0001891708300844235
+  hidden linearVelocity_0 2.8121399960778043e-05 -3.069269952787894e-10 -0.0013707169039243311
+  hidden angularVelocity_0 1.8524006646532239e-09 0.00033994774689180237 3.318215609124995e-11
+  hidden rotation_1 -4.0614130463785166e-11 -0.9999999981458982 -6.089501898869498e-05 1.3337996006369985e-06
+  hidden linearVelocity_1 4.650916907745546e-05 -7.892524852511842e-10 -0.00039928829424327523
+  hidden angularVelocity_1 1.4831956089066495e-09 0.00029114636065644226 5.913546328507372e-11
+  hidden rotation_2 -4.12797079291325e-11 0.9999999980846346 6.189289748206483e-05 1.3337996006369985e-06
+  hidden linearVelocity_2 4.650911712140638e-05 -1.3910357047340172e-10 -0.00039928824884141495
+  hidden angularVelocity_2 1.8467435588239786e-09 0.00029114633692455883 4.87718254591488e-12
+  hidden rotation_3 0 -1 0 0.0001891710742228363
+  hidden linearVelocity_3 2.8051837437541797e-05 -5.532147608050007e-10 -0.000620345273293397
+  hidden angularVelocity_3 2.6684095678004397e-10 6.486967464249368e-05 2.767982090548513e-11
+  hidden rotation_4 0 1 0 0.0001891708300771185
+  hidden linearVelocity_4 2.805178348807539e-05 3.007665383939695e-11 -0.0006203451884556777
+  hidden angularVelocity_4 1.250001102864177e-09 6.486953911052657e-05 3.771773229781962e-11
+  translation 151.95909573860325 -1.7901200004965547 0.37221651463735034
+  rotation -0.0014643168972013178 2.44293052360003e-09 0.9999989278874376 3.1415899999402797
+  name "vehicle_opposite_dir_2"
+  controller "supervisor"
+  synchronization FALSE
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

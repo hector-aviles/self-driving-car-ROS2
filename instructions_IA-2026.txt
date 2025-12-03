@@ -1,0 +1,131 @@
+
+1) Download: 
+
+$ git clone https://github.com/hector-aviles/self-driving-car-ROS2
+
+2) Enter subdirectory 
+
+cd self-driving-car-ROS2/ros2_ws
+colcon build --symlink-install
+
+3) In each terminal, source the workspace
+
+You will open 3 terminals, and in each one:
+
+$ source install/setup.bash
+  
+4) Execute 30 runs per world
+ 
+# Three known worlds and y three unknown worlds 
+
+######################   
+# CART classifier, 6 worlds:
+######################
+
+ros2 launch self_driving_car world_04.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART 3 4
+ 
+ros2 launch self_driving_car world_07.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART 3 4
+
+ros2 launch self_driving_car world_15.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART 3 4
+
+ros2 launch self_driving_car two_ways.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART -7 7
+
+ros2 launch self_driving_car transverse_direction.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART -7 7
+
+ros2 launch self_driving_car turn_right.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_CART 9 7
+
+######################   
+# LR classifier, 6 worlds:
+######################
+
+ros2 launch self_driving_car world_04.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR 3 4
+
+ros2 launch self_driving_car world_07.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR 3 4
+
+ros2 launch self_driving_car world_15.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR 3 4
+
+ros2 launch self_driving_car two_ways.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR -7 7
+
+ros2 launch self_driving_car transverse_direction.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR -7 7
+
+ros2 launch self_driving_car turn_right.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_LR 9 7
+
+######################   
+# XGBoost classifier, 6 worlds
+######################
+
+ros2 launch self_driving_car world_04.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost 3 4
+
+ros2 launch self_driving_car world_07.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost 3 4
+
+ros2 launch self_driving_car world_15.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost 3 4
+
+ros2 launch self_driving_car two_ways.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost -7 7
+
+ros2 launch self_driving_car transverse_direction.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost -7 7
+
+ros2 launch self_driving_car turn_right.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_XGBoost 9 7
+
+######################   
+# AP classifier, 6 worlds
+######################
+
+ros2 launch self_driving_car world_04.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP 3 4
+
+ros2 launch self_driving_car world_07.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP 3 4
+
+ros2 launch self_driving_car world_15.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP 3 4
+
+ros2 launch self_driving_car two_ways.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP -7 7
+
+ros2 launch self_driving_car transverse_direction.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP -7 7
+
+ros2 launch self_driving_car turn_right.launch.py
+ros2 run utils logger
+ros2 run self_driving_car test_AP 9 7

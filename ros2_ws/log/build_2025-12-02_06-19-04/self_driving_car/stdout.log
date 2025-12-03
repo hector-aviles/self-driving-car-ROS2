@@ -1,0 +1,31 @@
+running egg_info
+creating ../../build/self_driving_car/self_driving_car.egg-info
+writing ../../build/self_driving_car/self_driving_car.egg-info/PKG-INFO
+writing dependency_links to ../../build/self_driving_car/self_driving_car.egg-info/dependency_links.txt
+writing requirements to ../../build/self_driving_car/self_driving_car.egg-info/requires.txt
+writing top-level names to ../../build/self_driving_car/self_driving_car.egg-info/top_level.txt
+writing manifest file '../../build/self_driving_car/self_driving_car.egg-info/SOURCES.txt'
+reading manifest file '../../build/self_driving_car/self_driving_car.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file '../../build/self_driving_car/self_driving_car.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build/lib
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build/lib/self_driving_car
+copying self_driving_car/__init__.py -> /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build/lib/self_driving_car
+running install
+running install_lib
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car
+copying /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build/lib/self_driving_car/__init__.py -> /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car
+byte-compiling /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/ament_index
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/ament_index/resource_index
+creating /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/ament_index/resource_index/packages
+copying resource/self_driving_car -> /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/ament_index/resource_index/packages
+copying package.xml -> /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car
+running install_egg_info
+Copying ../../build/self_driving_car/self_driving_car.egg-info to /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car-0.0.0-py3.12.egg-info
+running install_scripts
+writing list of installed files to '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/install.log'

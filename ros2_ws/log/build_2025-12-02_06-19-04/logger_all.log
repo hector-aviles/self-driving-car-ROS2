@@ -1,0 +1,181 @@
+[0.161s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.161s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, mixin_files=None, mixin=None, verb_parser=<colcon_mixin.mixin.mixin_argument.MixinArgumentDecorator object at 0x7953f0693e30>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7953f0755940>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7953f0755940>>, mixin_verb=('build',))
+[0.216s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.216s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.216s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.217s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.217s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.217s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.217s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws'
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.217s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.218s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.255s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.256s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extensions ['ignore', 'ignore_ament_install']
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extension 'ignore'
+[0.257s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extension 'ignore_ament_install'
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extensions ['colcon_pkg']
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extension 'colcon_pkg'
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extensions ['colcon_meta']
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extension 'colcon_meta'
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extensions ['ros']
+[0.258s] Level 1:colcon.colcon_core.package_identification:_identify(src/self_driving_car) by extension 'ros'
+[0.261s] DEBUG:colcon.colcon_core.package_identification:Package 'src/self_driving_car' with type 'ros.ament_python' and name 'self_driving_car'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extensions ['ignore', 'ignore_ament_install']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extension 'ignore'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extension 'ignore_ament_install'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extensions ['colcon_pkg']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extension 'colcon_pkg'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extensions ['colcon_meta']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extension 'colcon_meta'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extensions ['ros']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src/utils) by extension 'ros'
+[0.263s] DEBUG:colcon.colcon_core.package_identification:Package 'src/utils' with type 'ros.ament_python' and name 'utils'
+[0.263s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.264s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.264s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.264s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.264s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.289s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.289s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.290s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.290s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.290s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/ros2_numpy' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.290s] WARNING:colcon.colcon_ros.prefix_path.catkin:The path '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/ros2_numpy' in the environment variable CMAKE_PREFIX_PATH doesn't exist
+[0.292s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 0 installed packages in /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install
+[0.294s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 329 installed packages in /opt/ros/jazzy
+[0.296s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_args' from command line to 'None'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_target' from command line to 'None'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_clean_cache' from command line to 'False'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_clean_first' from command line to 'False'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'cmake_force_configure' from command line to 'False'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'ament_cmake_args' from command line to 'None'
+[0.376s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'catkin_cmake_args' from command line to 'None'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'self_driving_car' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.377s] DEBUG:colcon.colcon_core.verb:Building package 'self_driving_car' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car', 'merge_install': False, 'path': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car', 'symlink_install': False, 'test_result_base': None}
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_args' from command line to 'None'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_target' from command line to 'None'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_clean_cache' from command line to 'False'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_clean_first' from command line to 'False'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'cmake_force_configure' from command line to 'False'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'ament_cmake_args' from command line to 'None'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'catkin_cmake_args' from command line to 'None'
+[0.377s] Level 5:colcon.colcon_core.verb:set package 'utils' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.377s] DEBUG:colcon.colcon_core.verb:Building package 'utils' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils', 'merge_install': False, 'path': '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/utils', 'symlink_install': False, 'test_result_base': None}
+[0.377s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.379s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.379s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car' with build type 'ament_python'
+[0.379s] Level 1:colcon.colcon_core.shell:create_environment_hook('self_driving_car', 'ament_prefix_path')
+[0.382s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.382s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/ament_prefix_path.ps1'
+[0.383s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/ament_prefix_path.dsv'
+[0.384s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/ament_prefix_path.sh'
+[0.385s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.385s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.389s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/utils' with build type 'ament_python'
+[0.389s] Level 1:colcon.colcon_core.shell:create_environment_hook('utils', 'ament_prefix_path')
+[0.390s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/ament_prefix_path.ps1'
+[0.391s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/ament_prefix_path.dsv'
+[0.392s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/ament_prefix_path.sh'
+[0.393s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.393s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.770s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car'
+[0.770s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.770s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.119s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/utils'
+[1.119s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.119s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[2.239s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(venv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/self_driving_car build --build-base /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build install --record /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/install.log --single-version-externally-managed install_data
+[2.246s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/utils': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(venv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/utils build --build-base /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/build install --record /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/install.log --single-version-externally-managed install_data
+[3.299s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(venv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/self_driving_car build --build-base /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/build install --record /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/install.log --single-version-externally-managed install_data
+[3.303s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car' for CMake module files
+[3.303s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car' for CMake config files
+[3.304s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib'
+[3.305s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/bin'
+[3.305s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/pkgconfig/self_driving_car.pc'
+[3.305s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages'
+[3.305s] Level 1:colcon.colcon_core.shell:create_environment_hook('self_driving_car', 'pythonpath')
+[3.306s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/pythonpath.ps1'
+[3.306s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/pythonpath.dsv'
+[3.307s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/hook/pythonpath.sh'
+[3.308s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/bin'
+[3.308s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(self_driving_car)
+[3.308s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/package.ps1'
+[3.309s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/package.dsv'
+[3.310s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/package.sh'
+[3.311s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/package.bash'
+[3.311s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/self_driving_car/package.zsh'
+[3.312s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/share/colcon-core/packages/self_driving_car)
+[3.315s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils' for CMake module files
+[3.318s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/utils' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PS1=(venv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(venv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/utils build --build-base /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/build install --record /home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/utils/install.log --single-version-externally-managed install_data
+[3.319s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils' for CMake config files
+[3.320s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/lib'
+[3.321s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/bin'
+[3.321s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/lib/pkgconfig/utils.pc'
+[3.322s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/lib/python3.12/site-packages'
+[3.322s] Level 1:colcon.colcon_core.shell:create_environment_hook('utils', 'pythonpath')
+[3.323s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/pythonpath.ps1'
+[3.324s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/pythonpath.dsv'
+[3.325s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/hook/pythonpath.sh'
+[3.328s] Level 1:colcon.colcon_core.environment:checking '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/bin'
+[3.328s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(utils)
+[3.329s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/package.ps1'
+[3.330s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/package.dsv'
+[3.333s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/package.sh'
+[3.334s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/package.bash'
+[3.336s] INFO:colcon.colcon_core.shell:Creating package script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/utils/package.zsh'
+[3.337s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/utils/share/colcon-core/packages/utils)
+[3.338s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[3.340s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[3.341s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[3.341s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[3.355s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[3.355s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[3.355s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[3.369s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[3.369s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/local_setup.ps1'
+[3.372s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/_local_setup_util_ps1.py'
+[3.376s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/setup.ps1'
+[3.381s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/local_setup.sh'
+[3.386s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/_local_setup_util_sh.py'
+[3.388s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/setup.sh'
+[3.391s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/local_setup.bash'
+[3.392s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/setup.bash'
+[3.395s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/local_setup.zsh'
+[3.396s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/setup.zsh'

@@ -1,0 +1,18 @@
+running egg_info
+writing ../../build/self_driving_car/self_driving_car.egg-info/PKG-INFO
+writing dependency_links to ../../build/self_driving_car/self_driving_car.egg-info/dependency_links.txt
+writing requirements to ../../build/self_driving_car/self_driving_car.egg-info/requires.txt
+writing top-level names to ../../build/self_driving_car/self_driving_car.egg-info/top_level.txt
+reading manifest file '../../build/self_driving_car/self_driving_car.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file '../../build/self_driving_car/self_driving_car.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+running install_data
+running install_egg_info
+removing '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car-0.0.0-py3.12.egg-info' (and everything under it)
+Copying ../../build/self_driving_car/self_driving_car.egg-info to /home/dell/source_code/self-driving-car-ROS2/ros2_ws/install/self_driving_car/lib/python3.12/site-packages/self_driving_car-0.0.0-py3.12.egg-info
+running install_scripts
+writing list of installed files to '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/self_driving_car/install.log'
