@@ -16,7 +16,7 @@ robot = Supervisor()
 class SupervisorNode(Node):
 
     def __init__(self):
-        super().__init__('supervisor_node')
+        super().__init__('supervisor_opposite_node')
 
         self.get_logger().info("Starting Controller Supervisor...")
 
