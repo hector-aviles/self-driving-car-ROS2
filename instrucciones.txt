@@ -1,0 +1,38 @@
+1. Adding dependencies when creating the package
+
+ros2 pkg create \
+  --build-type ament_python \
+  --license Apache-2.0 \
+  self_driving_car \
+  --dependencies rclpy geometry_msgs webots_ros2_driver sensor_msgs std_msgs rosgraph_msgs 
+
+2. Then manually add the missing dependencies in package.xml
+
+<exec_depend>cv_bridge</exec_depend>
+<exec_depend>ros2_numpy</exec_depend>
+<exec_depend>numpy</exec_depend>
+<exec_depend>controller</exec_depend>  <!-- For Webots Supervisor -->
+
+3. Add Python imports normally inside your scripts
+
+
+ros2 pkg create \
+  --build-type ament_python \
+  --license Apache-2.0 \
+  utils \
+  --dependencies rclpy geometry_msgs webots_ros2_driver sensor_msgs std_msgs rosgraph_msgs 
+
+colcon build
+
+source install/setup.bash
+
+python3 -m pip install PyYAML
+
+cd ~/source_code/self-driving-car-ROS2/ros2_ws/src
+git clone https://github.com/Box-Robotics/ros2_numpy.git -b jazzy
+pip install catkin_pkg
+colcon build
+source install/setup.bash
+
+
+
