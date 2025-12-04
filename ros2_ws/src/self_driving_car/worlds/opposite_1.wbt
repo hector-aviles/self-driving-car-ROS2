@@ -114,7 +114,7 @@ DEF vehicle_1 LincolnMKZSimple {
   color 0 0.4 0.5
   name "vehicle_1"
 }
-DEF vehicle_opposite_1 CitroenCZero {
+DEF vehicle_opposite_autonomous_1 CitroenCZero {
   hidden position_0_0 -3.3185234937712275e-08
   hidden position2_0_0 0.0005330532363430817
   hidden position_0_1 -3.304466836450082e-08
@@ -141,8 +141,12 @@ DEF vehicle_opposite_1 CitroenCZero {
   hidden angularVelocity_4 1.234412545460512e-06 9.747733507142715e-06 -1.6311490811696143e-07
   translation 172.1984597491137 1.7699718928088344 0.18043843631586864
   rotation 0.002534510466357353 8.061577619342607e-05 0.9999967848737279 3.1415876628163955
-  name "vehicle_opposite_1"
+  name "vehicle_opposite_autonomous_1"
   synchronization FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a29 {
+    }
+  ]     
 }
 DEF vehicle_opposite_2 MercedesBenzSprinterSimple {
   translation 145.5 -1.56997 0.4

@@ -63,9 +63,6 @@ class BMWX5Controller(Node):
         self.timer = self.create_timer(self.TIME_STEP / 1000.0, self.control_loop)
         
         self.get_logger().info('BMW X5 Controller Node Started')
-        self.get_logger().info('SIMULATION FOR THE AUTOMODELCAR LEAGUE OF THE MEXICAN ROBOTICS TOURNAMENT')
-        self.get_logger().info('TO MOVE THE VEHICLE, USE THE CORRESPONDING TOPICS')
-        self.get_logger().info('CHECK ONLINE DOCUMENTATION AT https://github.com/mnegretev/TMR-2022-AutoModelCar')
         self.get_logger().info(f"Using timestep={self.TIME_STEP} ms")
     
     def setup_sensors(self):
