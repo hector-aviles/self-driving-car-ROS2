@@ -18,7 +18,7 @@ from cv_bridge import CvBridge
 
 class LaneDetectorNode(Node):
     def __init__(self):
-        super().__init__('lane_detector_canny_hough')
+        super().__init__('lane_detector')
         
         self.bridge = CvBridge()
         
