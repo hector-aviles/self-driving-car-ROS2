@@ -29,10 +29,10 @@ def calculate_turning_steering(w, L, v):
     return steering
 
 
-class Vehicle_Opposite_Autonomous_Controller(Node):
+class CitroenCZero_Controller(Node):
 
     def __init__(self):
-        super().__init__('supervisor_opposite_autonomous_1')
+        super().__init__('CitroenCZero')
 
         # Webots driver
         self.driver = Driver()
@@ -64,7 +64,7 @@ class Vehicle_Opposite_Autonomous_Controller(Node):
         )
         self.create_subscription(  # <--- ¿?
             Pose2D,
-            "/vehicle_opposite_autonomous/pose",
+            "/CitroenCZero/pose",
             self.callback_pose,
             10
         )
@@ -72,17 +72,17 @@ class Vehicle_Opposite_Autonomous_Controller(Node):
         # Publisher
         self.pub_radar = self.create_publisher(
             Bool,
-            "/vehicle_opposite_autonomous/free_N",
+            "/CitroenCZero/free_N",
             10
         )
 
-        self.get_logger().info("supervisor_opposite_autonomous waiting for /vehicle_opposite_autonomous_started ...")
+        self.get_logger().info("supervisor_CitroenCZero waiting for /CitroenCZero_started ...")
 
         # Wait for start signal through temporary subscription
         self.start_signal_received = False
         self.create_subscription(
             Empty,
-            "/vehicle_opposite_autonomous_started",
+            "/CitroenCZero_started",
             self.callback_start_signal,
             10
         )
@@ -133,7 +133,7 @@ class Vehicle_Opposite_Autonomous_Controller(Node):
             if self.state == SM_INIT:
                 if -self.fov <= r.azimuth <= self.fov and r.distance <= self.valid_dist:
                     self.free_N = False
-                    self.get_logger().info("START Vehicle Opposite Autonomous swerving")
+                    self.get_logger().info("START CitroenCZero swerving")
                     self.state = SM_TURN_RIGHT_1
 
             elif self.state == SM_TURN_RIGHT_1:
@@ -149,7 +149,7 @@ class Vehicle_Opposite_Autonomous_Controller(Node):
                 self.steering = calculate_turning_steering(1.2, 2.9, self.speed)
 
                 if self.current_y > 2.5 or abs(self.current_a) < 0.05:
-                    self.get_logger().info("Vehicle Opposite Autonomous swerving FINISHED")
+                    self.get_logger().info("CitroenCZero swerving FINISHED")
                     self.state = SM_CRUISE
 
             elif self.state == SM_CRUISE:
@@ -163,7 +163,7 @@ class Vehicle_Opposite_Autonomous_Controller(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = Vehicle_Opposite_Autonomous_Controller()
+    node = CitroenCZero_Controller()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

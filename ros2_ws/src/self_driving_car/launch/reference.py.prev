@@ -1,0 +1,144 @@
+import os
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess, DeclareLaunchArgument, SetEnvironmentVariable, RegisterEventHandler, LogInfo
+from launch.event_handlers import OnProcessExit
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from webots_ros2_driver.webots_launcher import WebotsLauncher
+
+def generate_launch_description():
+    # ABSOLUTE PATH - NO GUESSING
+    src_dir = '/home/dell/source_code/self-driving-car-ROS2/ros2_ws/src/self_driving_car'
+    world_file = 'reference.wbt'
+    
+    # Construct paths
+    controllers_dir = os.path.join(src_dir, 'controllers')
+    worlds_dir = os.path.join(src_dir, 'worlds')
+    world_path = os.path.join(worlds_dir, world_file)
+    
+    # Debug: Show what we found
+    debug_logs = [
+        LogInfo(msg="=== LAUNCH FILE DEBUG ==="),
+        LogInfo(msg=f"Source directory: {src_dir}"),
+        LogInfo(msg=f"Controllers directory: {controllers_dir}"),
+        LogInfo(msg=f"Worlds directory: {worlds_dir}"),
+        LogInfo(msg=f"World path: {world_path}"),
+        LogInfo(msg=f"Source dir exists: {os.path.exists(src_dir)}"),
+        LogInfo(msg=f"Controllers dir exists: {os.path.exists(controllers_dir)}"),
+        LogInfo(msg=f"Worlds dir exists: {os.path.exists(worlds_dir)}"),
+        LogInfo(msg=f"World file exists: {os.path.exists(world_path)}"),
+    ]
+    
+    # If world doesn't exist, list what's available
+    if not os.path.exists(world_path):
+        debug_logs.append(LogInfo(msg="ERROR: World file not found!"))
+        if os.path.exists(worlds_dir):
+            debug_logs.append(LogInfo(msg=f"Available worlds: {os.listdir(worlds_dir)}"))
+    
+    # 1. Create Webots-compatible directory structure
+    create_symlinks = ExecuteProcess(
+        cmd=[
+            'bash', '-c',
+            f'echo "=== Creating Webots symlinks ===" && '
+            f'cd "{src_dir}" && '
+            f'echo "Working in: $(pwd)" && '
+            f'mkdir -p projects/default/controllers projects/vehicles/controllers && '
+            f'# Create symlinks for each controller && '
+            f'for controller in CitroenCZero bmw_x5_controller supervisor; do '
+            f'  if [ -d "controllers/$controller" ]; then '
+            f'    ln -sf "../../../controllers/$controller" "projects/default/controllers/$controller" 2>/dev/null || true && '
+            f'    ln -sf "../../../controllers/$controller" "projects/vehicles/controllers/$controller" 2>/dev/null || true && '
+            f'    echo "Created symlinks for $controller" '
+            f'  else '
+            f'    echo "WARNING: Controller $controller not found" '
+            f'  fi '
+            f'done && '
+            f'echo "Symlinks created" && '
+            f'ls -la projects/default/controllers/'
+        ],
+        output='screen',
+        shell=True
+    )
+    
+    # 2. Launch Webots using ExecuteProcess (more reliable than WebotsLauncher)
+    webots_process = ExecuteProcess(
+        cmd=[
+            'webots',
+            '--mode=realtime',
+            '--stdout',
+            '--stderr',
+            world_path
+        ],
+        output='screen',
+        # CRITICAL: Set working directory
+        cwd=src_dir,
+        # CRITICAL: Set environment variables
+        env={
+            **os.environ,  # Keep existing environment
+            'WEBOTS_PROJECT_PATH': src_dir,
+            'WEBOTS_HOME': '/usr/local/webots',
+            'PYTHONPATH': f"{src_dir}:{os.environ.get('PYTHONPATH', '')}",
+        },
+        name='webots_simulation'
+    )
+    
+    # 3. ROS2 arguments
+    launch_args = [
+        DeclareLaunchArgument('max_speed', default_value='20'),
+        DeclareLaunchArgument('k_following', default_value='10.0'),
+        DeclareLaunchArgument('dist_to_car', default_value='20'),
+        DeclareLaunchArgument('goal_dist', default_value='200'),
+        DeclareLaunchArgument('no_gui', default_value='false'),
+    ]
+    
+    # 4. ROS2 nodes
+    nodes = [
+        Node(package='self_driving_car', executable='lane_detector_canny_hough', output='screen'),
+        Node(package='self_driving_car', executable='obstacle_detector', output='screen'),
+        Node(
+            package='self_driving_car',
+            executable='behaviors',
+            output='screen',
+            parameters=[{
+                'max_speed': LaunchConfiguration('max_speed'),
+                'k_following': LaunchConfiguration('k_following'),
+                'dist_to_car': LaunchConfiguration('dist_to_car')
+            }]
+        ),
+        Node(package='self_driving_car', executable='success', output='screen'),
+        Node(package='self_driving_car', executable='stop', output='screen'),
+        Node(package='self_driving_car', executable='lane_identification', output='screen'),
+    ]
+    
+    # 5. TF static transforms
+    tfs = [
+        Node(package='tf2_ros', executable='static_transform_publisher',
+             arguments=['0', '0', '2.0', '0', '0', '0', 'car_link', 'lidar_link']),
+        Node(package='tf2_ros', executable='static_transform_publisher',
+             arguments=['1.2', '0', '1.5', '0', '0', '0', 'car_link', 'camera_link']),
+        Node(package='tf2_ros', executable='static_transform_publisher',
+             arguments=['0', '0', '0.1', '0', '0', '0', 'car_link', 'gyro_link']),
+        Node(package='tf2_ros', executable='static_transform_publisher',
+             arguments=['0', '0', '0.1', '0', '0', '0', 'car_link', 'accel_link']),
+        Node(package='tf2_ros', executable='static_transform_publisher',
+             arguments=['0', '0', '0.1', '0', '0', '0', 'car_link', 'gps_link']),
+    ]
+    
+    # 6. Shutdown handler
+    shutdown_event = RegisterEventHandler(
+        OnProcessExit(
+            target_action=webots_process,
+            on_exit=[webots_process]
+        )
+    )
+    
+    # 7. Combine everything
+    return LaunchDescription(
+        debug_logs +
+        [create_symlinks] +
+        launch_args +
+        [webots_process] +
+        nodes +
+        tfs +
+        [shutdown_event]
+    )

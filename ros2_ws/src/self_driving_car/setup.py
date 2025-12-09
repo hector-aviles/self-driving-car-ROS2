@@ -1,5 +1,4 @@
 from setuptools import setup
-import os
 from glob import glob
 
 package_name = 'self_driving_car'
@@ -8,22 +7,42 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
+
     data_files=[
         # ROS 2 package index
-        ('share/ament_index/resource_index/packages',
-         ['resource/' + package_name]),
+        (
+            'share/ament_index/resource_index/packages',
+            ['resource/' + package_name]
+        ),
 
         # package.xml
-        ('share/' + package_name, ['package.xml']),
+        (
+            'share/' + package_name,
+            ['package.xml']
+        ),
 
         # Launch files
-        ('share/' + package_name + '/launch', 
-         glob('launch/*.py')),
+        (
+            'share/' + package_name + '/launch',
+            glob('launch/*.py')
+        ),
 
-        # World files
-        ('share/' + package_name + '/worlds', 
-         glob('worlds/*.wbt')),
+        # Worlds
+        ('share/' + package_name + '/worlds', glob('worlds/*.wbt')),
+
+        # Textures
+        (
+            'share/' + package_name + '/worlds/textures',
+            glob('worlds/textures/*')
+        ),
+
+        # Controllers
+        ('share/' + package_name + '/controllers/bmw_x5_controller',  glob('controllers/bmw_x5_controller/*')),
+        ('share/' + package_name + '/controllers/supervisor', glob('controllers/supervisor/*')),
+        ('share/' + package_name + '/controllers/supervisor_opposite_autonomous_1',  glob('controllers/supervisor_opposite_autonomous_1/*')),
+
     ],
+
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Héctor Avilés',
@@ -42,8 +61,7 @@ setup(
             'success = self_driving_car.success:main',
             'stop = self_driving_car.stop:main',
             'supervisor_opposite = self_driving_car.supervisor_opposite:main',
-            'supervisor_transverse = self_driving_car.supervisor_transverse:main',            
-            # Add any other Python nodes here
+            'supervisor_transverse = self_driving_car.supervisor_transverse:main',
         ],
     },
 )

@@ -26,13 +26,70 @@ colcon build
 
 source install/setup.bash
 
+pip install lark-parser
+pip install lark
 python3 -m pip install PyYAML
+pip install catkin_pkg
 
 cd ~/source_code/self-driving-car-ROS2/ros2_ws/src
 git clone https://github.com/Box-Robotics/ros2_numpy.git -b jazzy
-pip install catkin_pkg
+
 colcon build
+source install/setup.bash
+
+source install/setup.bash
+ros2 launch self_driving_car reference.py max_speed:=30
+
+pip install empy
+git clone https://github.com/cyberbotics/webots_ros2.git
+colcon build 
 source install/setup.bash
 
 
 
+tree -L 4 src/webots_ros2*
+
+
+pip install empy
+pip install lark-parser
+pip install setuptools
+pip install colcon-common-extensions
+pip install catkin_pkg
+pip install rosdep
+
+Ésto funcionó:
+
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+git clone -b jazzy https://github.com/cyberbotics/webots_ros2.git
+cd ~/ros2_ws
+colcon build
+echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
+
+##################################################################33
+
+WARNING: DEF BMW_X5 BmwX5 > Camera "camera": As 'physics' is set to NULL, collisions will have no effect.
+WARNING: DEF BMW_X5 BmwX5 > VelodyneHDL-64E "Velodyne HDL-64E": As 'physics' is set to NULL, collisions will have no effect.
+WARNING: DEF BMW_X5 BmwX5: The controller directory has not been found, searched the following locations:
+//controllers/bmw_x5_controller/
+/usr/local/webots/projects/vehicles/controllers/bmw_x5_controller/
+/usr/local/webots/projects/default/controllers/bmw_x5_controller/
+/usr/local/webots/resources/projects/controllers/bmw_x5_controller/
+WARNING: DEF vehicle_opposite_autonomous_1 CitroenCZero: The controller directory has not been found, searched the following locations:
+//controllers/supervisor_opposite_autonomous_1/
+/usr/local/webots/projects/vehicles/controllers/supervisor_opposite_autonomous_1/
+/usr/local/webots/projects/default/controllers/supervisor_opposite_autonomous_1/
+/usr/local/webots/resources/projects/controllers/supervisor_opposite_autonomous_1/
+WARNING: Robot "robot": The controller directory has not been found, searched the following locations:
+//controllers/supervisor/
+/usr/local/webots/projects/default/controllers/supervisor/
+/usr/local/webots/resources/projects/controllers/supervisor/
+WARNING: bmw_x5_controller: Could not find the controller directory.
+Starting the <generic> controller instead.
+
+# Copiar controladores a donde los pueda encontrar Webots:
+sudo cp -r src/self_driving_car/controllers/bmw_x5_controller/ /usr/local/webots/projects/vehicles/controllers/
+
+sudo cp -r src/self_driving_car/controllers/supervisor_opposite_autonomous_1/ /usr/local/webots/projects/vehicles/controllers/
+
+sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projects/default/controllers/supervisor/

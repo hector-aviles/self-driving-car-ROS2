@@ -165,8 +165,8 @@ DEF vehicle_opposite_autonomous_1 CitroenCZero {
   hidden angularVelocity_4 1.3899250934229718e-10 -7.536554594320724e-06 3.800176206107437e-10
   translation 138.98333959586486 1.7699903098041707 0.1804405512953498
   rotation 0.002534407066751533 8.057260288130072e-05 0.9999967851392702 3.14158803176187
-  name "vehicle_opposite_autonomous"
-  controller "supervisor_opposite_autonomous_1"
+  name "CitroenCZero"
+  controller "CitroenCZero"
   synchronization FALSE
   sensorsSlotFront [
     SmsUmrr-0a29 {

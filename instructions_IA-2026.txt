@@ -6,17 +6,23 @@ $ git clone https://github.com/hector-aviles/self-driving-car-ROS2
 2) Enter subdirectory 
 
 cd self-driving-car-ROS2/ros2_ws
-colcon build --symlink-install
+colcon build
 
-3) In each terminal, source the workspace
+3) You will open 3 terminals, and in each one source:
 
-You will open 3 terminals, and in each one:
+source install/setup.bash
+source ~/source_code/venv/bin/activate # required to enable beepy
 
-$ source install/setup.bash
-  
+sudo cp -r src/self_driving_car/controllers/bmw_x5_controller/ /usr/local/webots/projects/vehicles/controllers/
+
+sudo cp -r src/self_driving_car/controllers/supervisor_opposite_autonomous_1/ /usr/local/webots/projects/vehicles/controllers/
+
+sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projects/default/controllers/supervisor/
+
 4) Execute 30 runs per world
  
 # Three known worlds and y three unknown worlds 
+
 
 ######################   
 # CART classifier, 6 worlds:
