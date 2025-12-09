@@ -39,7 +39,7 @@ setup(
         # Controllers
         ('share/' + package_name + '/controllers/bmw_x5_controller',  glob('controllers/bmw_x5_controller/*')),
         ('share/' + package_name + '/controllers/supervisor', glob('controllers/supervisor/*')),
-        ('share/' + package_name + '/controllers/supervisor_opposite_autonomous_1',  glob('controllers/supervisor_opposite_autonomous_1/*')),
+        ('share/' + package_name + '/controllers/CitroenCZero_controller',  glob('controllers/CitroenCZero_controller/*')),
 
     ],
 

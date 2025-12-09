@@ -144,7 +144,7 @@ DEF vehicle_2 TeslaModel3Simple {
   color 1 0.5 0
   name "vehicle_2"
 }
-DEF vehicle_opposite_autonomous_1 CitroenCZero {
+DEF CitroenCZero_1 CitroenCZero {
   hidden position_0_0 -3.3020642849671316e-08
   hidden position2_0_0 0.0005330023741398706
   hidden position_0_1 -3.2881360746503647e-08
@@ -165,8 +165,8 @@ DEF vehicle_opposite_autonomous_1 CitroenCZero {
   hidden angularVelocity_4 1.3899250934229718e-10 -7.536554594320724e-06 3.800176206107437e-10
   translation 138.98333959586486 1.7699903098041707 0.1804405512953498
   rotation 0.002534407066751533 8.057260288130072e-05 0.9999967851392702 3.14158803176187
-  name "CitroenCZero"
-  controller "CitroenCZero"
+  name "CitroenCZero_1"
+  controller "CitroenCZero_controller"
   synchronization FALSE
   sensorsSlotFront [
     SmsUmrr-0a29 {
