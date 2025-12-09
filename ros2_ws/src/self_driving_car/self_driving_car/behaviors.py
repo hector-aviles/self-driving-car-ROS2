@@ -35,9 +35,9 @@ SM_PASS_ON_LEFT_4 = 150
 SM_PASS_ON_LEFT_5 = 160
 MAX_STEERING = 0.5
 
-class LaneTrackingNode(Node):
+class BehaviorsNode(Node):
     def __init__(self):
-        super().__init__('lane_tracking')
+        super().__init__('behaviors')
         
         # Initialize global variables as instance variables
         self.max_speed = 30      # Maximum speed for following and steady motion behaviors
@@ -481,7 +481,7 @@ class LaneTrackingNode(Node):
 
 def main():
     rclpy.init()
-    node = LaneTrackingNode()
+    node = BehaviorsNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

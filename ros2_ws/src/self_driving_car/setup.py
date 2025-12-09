@@ -59,9 +59,7 @@ setup(
             'lane_identification = self_driving_car.lane_identification:main',
             'goal_reached = self_driving_car.goal_reached:main',
             'success = self_driving_car.success:main',
-            'stop = self_driving_car.stop:main',
-            'supervisor_opposite = self_driving_car.supervisor_opposite:main',
-            'supervisor_transverse = self_driving_car.supervisor_transverse:main',
+            'stop = self_driving_car.stop:main'
         ],
     },
 )
