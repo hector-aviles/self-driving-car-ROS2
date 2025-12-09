@@ -55,8 +55,8 @@ class TestAPNode(Node):
         self.curr_lane = True
         self.change_lane_finished = False
         
-        self.vel_cars_left_lane = int(speed_left)
-        self.vel_cars_right_lane = int(speed_right)
+        self.vel_vehicles_left_lane = int(speed_left)
+        self.vel_vehicles_right_lane = int(speed_right)
         
         print("INITIALIZING POLICY...", flush=True)
         
@@ -78,8 +78,8 @@ class TestAPNode(Node):
         self.pub_change_lane_on_left = self.create_publisher(Bool, "/start_change_lane_on_left", 1)
         self.pub_change_lane_on_right = self.create_publisher(Bool, "/start_change_lane_on_right", 1)
         self.pub_action = self.create_publisher(String, "/action", 1)
-        self.pub_speed_cars_left_lane = self.create_publisher(Float64, "/speed_cars_left_lane", 1)
-        self.pub_speed_cars_right_lane = self.create_publisher(Float64, "/speed_cars_right_lane", 1)
+        self.pub_speed_vehicles_left_lane = self.create_publisher(Float64, "/speed_vehicles_left_lane", 1)
+        self.pub_speed_vehicles_right_lane = self.create_publisher(Float64, "/speed_vehicles_right_lane", 1)
         
         # Create ActionPolicy model
         self.get_logger().info("Creating ActionPolicy classifier...")
@@ -168,12 +168,12 @@ class TestAPNode(Node):
         self.pub_policy_started.publish(Empty())
         
         speed_left_msg = Float64()
-        speed_left_msg.data = float(self.vel_cars_left_lane)
-        self.pub_speed_cars_left_lane.publish(speed_left_msg)
+        speed_left_msg.data = float(self.vel_vehicles_left_lane)
+        self.pub_speed_vehicles_left_lane.publish(speed_left_msg)
         
         speed_right_msg = Float64()
-        speed_right_msg.data = float(self.vel_cars_right_lane)
-        self.pub_speed_cars_right_lane.publish(speed_right_msg)
+        speed_right_msg.data = float(self.vel_vehicles_right_lane)
+        self.pub_speed_vehicles_right_lane.publish(speed_right_msg)
         
         try:
             # Patch   

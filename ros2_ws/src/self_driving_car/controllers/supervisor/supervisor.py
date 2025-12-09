@@ -170,11 +170,7 @@ class SupervisorNode(Node):
                 msg_vehicles_pose.y = values[1]
                 msg_vehicles_pose.theta = 0.0
                 
-                # Set velocity based on lane
-                if msg_vehicles_pose.y < 0:
-                    vehicle.setVelocity([self.speed_vehicles_left_lane, 0, 0, 0, 0, 0])
-                else:
-                    vehicle.setVelocity([self.speed_vehicles_right_lane, 0, 0, 0, 0, 0])
+                vehicle.setVelocity([self.speed_vehicles_left_lane, 0, 0, 0, 0, 0])
                 
                 publisher_name = f'vehicle_{i+1}'
                 if publisher_name in self.pub_vehicles_pose:
@@ -190,11 +186,7 @@ class SupervisorNode(Node):
                 msg_vehicles_opposite_pose.y = values[1]
                 msg_vehicles_opposite_pose.theta = 0.0
                 
-                # Set velocity based on lane
-                if msg_vehicles_opposite_pose.y < 0:
-                    vehicle.setVelocity([self.speed_vehicles_left_lane, 0, 0, 0, 0, 0])
-                else:
-                    vehicle.setVelocity([self.speed_vehicles_right_lane, 0, 0, 0, 0, 0])
+                vehicle.setVelocity([-self.speed_vehicles_left_lane, 0, 0, 0, 0, 0])
                 
                 publisher_name = f'vehicle_opposite_{i+1}'
                 if publisher_name in self.pub_vehicles_pose:                   
@@ -211,10 +203,7 @@ class SupervisorNode(Node):
                 msg_vehicles_transverse_pose.theta = 0.0
                 
                 # Set velocity based on lane
-                if msg_vehicles_transverse_pose.y < 0:
-                    vehicle.setVelocity([self.speed_vehicles_left_lane, 0, 0, 0, 0, 0])
-                else:
-                    vehicle.setVelocity([self.speed_vehicles_right_lane, 0, 0, 0, 0, 0])
+                vehicle.setVelocity([0, -self.speed_vehicles_left_lane, 0, 0, 0, 0])
                 
                 publisher_name = f'vehicle_transverse_{i+1}'
                 if publisher_name in self.pub_vehicles_pose:

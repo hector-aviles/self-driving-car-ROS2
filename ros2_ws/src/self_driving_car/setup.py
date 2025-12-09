@@ -43,7 +43,7 @@ setup(
 
     ],
 
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'pandas', 'scikit-learn', 'numpy'],
     zip_safe=True,
     maintainer='Héctor Avilés',
     maintainer_email='havilesa@upv.edu.mx',
@@ -59,7 +59,8 @@ setup(
             'lane_identification = self_driving_car.lane_identification:main',
             'goal_reached = self_driving_car.goal_reached:main',
             'success = self_driving_car.success:main',
-            'stop = self_driving_car.stop:main'
+            'stop = self_driving_car.stop:main',
+            'test_AP = self_driving_car.test_AP:main'  
         ],
     },
 )
