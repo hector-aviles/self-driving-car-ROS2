@@ -1,249 +1,144 @@
 #!/usr/bin/env python3
+"""
+BMW X5 Webots controller (ROS2) — publishes 3D LiDAR, camera, IMU
+NO TF BROADCASTING — all transforms handled by launch file.
+"""
 
-import math
 import struct
+import math
 from vehicle import Driver
 from controller import Camera, Lidar, Accelerometer
 import rclpy
 from rclpy.node import Node
-from rclpy.clock import ClockType
-from std_msgs.msg import Float64
-from sensor_msgs.msg import Image, PointCloud2, PointField, Imu
-from builtin_interfaces.msg import Time
-from rosgraph_msgs.msg import Clock
+from sensor_msgs.msg import PointCloud2, PointField, Image, Imu
+from builtin_interfaces.msg import Time as RosTime
+
+
+TIME_STEP = 10  # ms, match your Webots world
+
+# Frame names (must match your launch file)
+FRAME_LIDAR = "lidar_link"
+FRAME_CAMERA = "camera_link"
+FRAME_IMU = "imu_link"
+
 
 class BMWX5Controller(Node):
     def __init__(self):
         super().__init__('bmw_x5_controller')
-        
-        # INIT DRIVER
+
         self.driver = Driver()
-        self.driver.setCruisingSpeed(0.0)
-        self.driver.setSteeringAngle(0.0)
-        
-        # CONSTANTS
-        self.TIME_STEP = int(self.driver.getBasicTimeStep())
-        
-        # SENSOR TIMING
-        self.lidar_interval = 0.085  # ~11.76 Hz
-        self.camera_interval = 0.028  # ~35.7 Hz
-        self.imu_interval = 0.01  # 100 Hz
-        
-        # INIT SENSORS
-        self.setup_sensors()
-        
-        # ROS 2 PUBLISHERS
-        self.pub_clock = self.create_publisher(Clock, '/clock', 10)
-        self.pub_camera_data = self.create_publisher(Image, '/camera/rgb/raw', 10)
+
+        # Devices
+        self.camera = self.driver.getDevice('camera')
+        self.camera.enable(TIME_STEP)
+
+        self.lidar = self.driver.getDevice('Velodyne HDL-64E')
+        self.lidar.enable(TIME_STEP)
+        try:
+            self.lidar.enablePointCloud()
+        except Exception:
+            pass
+
+        self.accel = self.driver.getDevice('accelerometer')
+        self.accel.enable(TIME_STEP)
+
+        # Publishers
         self.pub_point_cloud = self.create_publisher(PointCloud2, '/point_cloud', 10)
-        self.pub_imu_accel = self.create_publisher(Imu, '/accelerometer', 10)
-        
-        # ROS 2 SUBSCRIBERS
-        self.sub_speed = self.create_subscription(
-            Float64, 
-            '/speed', 
-            self.callback_cruise_speed, 
-            10
-        )
-        self.sub_steering = self.create_subscription(
-            Float64, 
-            '/steering', 
-            self.callback_steering_angle, 
-            10
-        )
-        
-        # Create reusable messages
-        self.create_messages()
-        
-        # Timing variables
-        self.time_lidar_last = self.driver.getTime()
-        self.time_camera_last = self.driver.getTime()
-        self.time_imu_last = self.driver.getTime()
-        
-        # Timer for main control loop (matches Webots time step)
-        self.timer = self.create_timer(self.TIME_STEP / 1000.0, self.control_loop)
-        
-        self.get_logger().info('BMW X5 Controller Node Started')
-        self.get_logger().info(f"Using timestep={self.TIME_STEP} ms")
-    
-    def setup_sensors(self):
-        """Initialize and enable all sensors"""
-        self.camera = Camera('camera')
-        self.camera.enable(self.TIME_STEP)
-        
-        # Note: name used here must match your Webots device name
-        self.lidar = Lidar('Velodyne HDL-64E')
-        self.lidar.enable(self.TIME_STEP)
-        self.lidar.enablePointCloud()
-        
-        self.accel = Accelerometer('accelerometer')
-        self.accel.enable(self.TIME_STEP)
-    
-    def create_messages(self):
-        """Create reusable message objects"""
-        # IMAGE MESSAGE
-        self.msg_image = Image()
-        self.msg_image.height = self.camera.getHeight()
-        self.msg_image.width = self.camera.getWidth()
-        self.msg_image.is_bigendian = False
-        # Assuming camera uses 4 bytes per pixel (BGRA)
-        self.msg_image.step = self.camera.getWidth() * 4
-        self.msg_image.encoding = 'bgra8'
-        
-        # POINT CLOUD MESSAGE
-        self.msg_point_cloud = PointCloud2()
-        self.msg_point_cloud.header.frame_id = 'lidar_link'
-        self.msg_point_cloud.height = 1
-        # We'll set width dynamically when publishing because number of valid points can vary
-        self.msg_point_cloud.width = 0
-        # point_step: 3 floats (x,y,z) -> 3 * 4 = 12 bytes
-        self.msg_point_cloud.point_step = 12
-        self.msg_point_cloud.row_step = 0  # will update dynamically
-        self.msg_point_cloud.is_dense = False
-        self.msg_point_cloud.is_bigendian = False
-        self.msg_point_cloud.fields = [
+        self.pub_camera = self.create_publisher(Image, '/camera/rgb/raw', 10)
+        self.pub_imu = self.create_publisher(Imu, '/imu', 10)
+
+        # Preallocated messages
+        self.msg_pc = PointCloud2()
+        self.msg_pc.header.frame_id = FRAME_LIDAR
+        self.msg_pc.height = 1
+        self.msg_pc.is_bigendian = False
+        self.msg_pc.is_dense = False
+        self.msg_pc.point_step = 12
+        self.msg_pc.fields = [
             PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
             PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
             PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
         ]
-        # ACCELEROMETER MESSAGE
-        self.msg_accel = Imu()
-        self.msg_accel.header.frame_id = 'accel_link'
-    
-    def callback_cruise_speed(self, msg):
-        """Callback for speed control"""
-        self.driver.setCruisingSpeed(msg.data)
-        self.get_logger().debug(f'Setting speed to: {msg.data} km/h')
-    
-    def callback_steering_angle(self, msg):
-        """Callback for steering control"""
-        # sign inverted as in original code
-        self.driver.setSteeringAngle(-msg.data)
-        self.get_logger().debug(f'Setting steering angle to: {-msg.data} radians')
-    
-    def control_loop(self):
-        """Main control loop called by timer"""
-        if self.driver.step() == -1:
-            self.get_logger().info('Simulation ended')
-            return
-        
-        current_t = self.driver.getTime()
-        
-        # Publish clock
-        self.publish_clock(current_t)
-        
-        # Publish sensor data at appropriate intervals
-        self.publish_sensor_data(current_t)
-    
-    def publish_clock(self, current_t):
-        """Publish simulation clock"""
-        msg_clock = Clock()
-        # Convert simulation time to ROS time
-        clock_time = Time()
-        clock_time.sec = int(current_t)
-        clock_time.nanosec = int((current_t - clock_time.sec) * 1e9)
-        msg_clock.clock = clock_time
-        self.pub_clock.publish(msg_clock)
-    
-    def publish_sensor_data(self, current_t):
-        """Publish all sensor data at appropriate intervals"""
-        # Publish lidar data
-        if (current_t - self.time_lidar_last) >= self.lidar_interval:
-            self.time_lidar_last = current_t
-            try:
-                points = self.lidar.getPointCloud()  # no data_type arg
-            except Exception as ex:
-                self.get_logger().error(f'Error reading LiDAR point cloud: {ex}')
-                points = None
 
-            # Build PointCloud2.data robustly
-            if points:
-                # If Webots returned raw bytes already, try to use it directly (best-effort)
-                if isinstance(points, (bytes, bytearray)):
-                    self.msg_point_cloud.data = bytes(points)
-                    # Try to infer width from lidar reported number of points
-                    try:
-                        num_points = int(self.lidar.getNumberOfPoints())
-                    except Exception:
-                        num_points = len(self.msg_point_cloud.data) // self.msg_point_cloud.point_step
-                    self.msg_point_cloud.width = num_points
-                    self.msg_point_cloud.row_step = self.msg_point_cloud.point_step * self.msg_point_cloud.width
-                else:
-                    # Expecting an iterable of (x,y,z) triples (or objects with [0],[1],[2])
+        self.msg_img = Image()
+        self.msg_img.header.frame_id = FRAME_CAMERA
+        self.msg_img.encoding = "bgra8"
+        self.msg_img.width = self.camera.getWidth()
+        self.msg_img.height = self.camera.getHeight()
+        self.msg_img.step = self.msg_img.width * 4
+
+        self.msg_imu = Imu()
+        self.msg_imu.header.frame_id = FRAME_IMU
+
+        # timing
+        t0 = self.driver.getTime()
+        self.last_lidar = t0
+        self.last_camera = t0
+        self.last_imu = t0
+
+        self.lidar_interval = 0.1
+        self.camera_interval = 0.1
+        self.imu_interval = 0.02
+
+        self.get_logger().info("BMW X5 controller initialized (no TF broadcasting)")
+
+    def make_ros_time(self, sim_time_seconds: float) -> RosTime:
+        t = RosTime()
+        t.sec = int(sim_time_seconds)
+        t.nanosec = int((sim_time_seconds - int(sim_time_seconds)) * 1e9)
+        return t
+
+    def spin(self):
+        while self.driver.step() != -1:
+            sim_t = self.driver.getTime()
+
+            # IMU
+            if (sim_t - self.last_imu) >= self.imu_interval:
+                self.last_imu = sim_t
+                acc = self.accel.getValues()
+                self.msg_imu.linear_acceleration.x = float(acc[0])
+                self.msg_imu.linear_acceleration.y = float(acc[1])
+                self.msg_imu.linear_acceleration.z = float(acc[2])
+                self.msg_imu.header.stamp = self.make_ros_time(sim_t)
+                self.pub_imu.publish(self.msg_imu)
+
+            # LIDAR
+            if (sim_t - self.last_lidar) >= self.lidar_interval:
+                self.last_lidar = sim_t
+                points = self.lidar.getPointCloud()
+                if points:
                     buf = bytearray()
-                    count = 0
                     for p in points:
-                        try:
-                            x = float(p[0])
-                            y = float(p[1])
-                            z = float(p[2])
-                        except Exception:
-                            # If element not indexable, try attributes
-                            try:
-                                x = float(p.x)
-                                y = float(p.y)
-                                z = float(p.z)
-                            except Exception:
-                                continue
-                        buf.extend(struct.pack('<fff', x, y, z))
-                        count += 1
+                        buf.extend(struct.pack('<fff',
+                                               float(p.x), float(p.y), float(p.z)))
+                    self.msg_pc.data = bytes(buf)
+                    self.msg_pc.width = len(points)
+                    self.msg_pc.row_step = self.msg_pc.point_step * len(points)
+                    self.msg_pc.header.stamp = self.make_ros_time(sim_t)
+                    self.pub_point_cloud.publish(self.msg_pc)
 
-                    self.msg_point_cloud.data = bytes(buf)
-                    self.msg_point_cloud.width = count
-                    self.msg_point_cloud.row_step = self.msg_point_cloud.point_step * self.msg_point_cloud.width
+            # CAMERA
+            if (sim_t - self.last_camera) >= self.camera_interval:
+                self.last_camera = sim_t
+                img = self.camera.getImage()
+                if img:
+                    self.msg_img.data = img
+                    self.msg_img.header.stamp = self.make_ros_time(sim_t)
+                    self.pub_camera.publish(self.msg_img)
 
-                # Stamp and publish if we have points
-                self.msg_point_cloud.header.stamp = self.get_clock().now().to_msg()
-                # Only publish when there is data (width > 0)
-                if self.msg_point_cloud.width > 0:
-                    self.pub_point_cloud.publish(self.msg_point_cloud)
-                    self.get_logger().debug(f'Published LiDAR point cloud with {self.msg_point_cloud.width} points')
-                else:
-                    self.get_logger().debug('LiDAR returned no valid points to publish')
-            else:
-                self.get_logger().debug('No LiDAR data available this step')
-        
-        # Publish camera data
-        if (current_t - self.time_camera_last) >= self.camera_interval:
-            self.time_camera_last = current_t
-            try:
-                self.msg_image.data = self.camera.getImage()
-                self.msg_image.header.stamp = self.get_clock().now().to_msg()
-                self.pub_camera_data.publish(self.msg_image)
-                self.get_logger().debug('Published camera image')
-            except Exception as ex:
-                self.get_logger().error(f'Error publishing camera image: {ex}')
-        
-        # Publish IMU data
-        if (current_t - self.time_imu_last) >= self.imu_interval:
-            self.time_imu_last = current_t
-            try:
-                self.msg_accel.header.stamp = self.get_clock().now().to_msg()
-                accel_values = self.accel.getValues()
-                # accel_values is typically a 3-tuple
-                self.msg_accel.linear_acceleration.x = float(accel_values[0])
-                self.msg_accel.linear_acceleration.y = float(accel_values[1])
-                self.msg_accel.linear_acceleration.z = float(accel_values[2])
-                self.pub_imu_accel.publish(self.msg_accel)
-                self.get_logger().debug('Published accelerometer data')
-            except Exception as ex:
-                self.get_logger().error(f'Error publishing IMU data: {ex}')
 
 def main(args=None):
     rclpy.init(args=args)
-    
+    node = BMWX5Controller()
     try:
-        controller = BMWX5Controller()
-        rclpy.spin(controller)
+        node.spin()
     except KeyboardInterrupt:
         pass
-    except Exception as e:
-        print(f"Error in BMW X5 Controller: {e}")
     finally:
-        if 'controller' in locals():
-            controller.destroy_node()
+        node.destroy_node()
         rclpy.shutdown()
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()
 

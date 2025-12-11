@@ -56,6 +56,22 @@ pip install setuptools
 pip install colcon-common-extensions
 pip install catkin_pkg
 pip install rosdep
+pip install pandas
+pip install scikit-learn
+pip install numpy
+sudo apt install python3-pandas python3-sklearn python3-numpy python3-scipy
+
+# Install system wide
+sudo apt update
+sudo apt install python3-empy python3-lark-parser python3-setuptools \
+                 python3-colcon-common-extensions python3-catkin-pkg \
+                 python3-rosdep
+
+# Try apt first
+sudo apt install python3-pandas python3-sklearn python3-numpy
+
+# If versions are too old or not available, use pip with --break-system-packages
+sudo pip install --break-system-packages pandas scikit-learn numpy 
 
 Ésto funcionó:
 
@@ -93,3 +109,90 @@ sudo cp -r src/self_driving_car/controllers/bmw_x5_controller/ /usr/local/webots
 sudo cp -r src/self_driving_car/controllers/supervisor_opposite_autonomous_1/ /usr/local/webots/projects/vehicles/controllers/
 
 sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projects/default/controllers/supervisor/
+
+Clean rebuild:
+
+# Navigate to your workspace
+cd ~/source_code/self-driving-car-ROS2/ros2_ws
+
+# 1. REMOVE ALL BUILD ARTIFACTS
+rm -rf build/ install/ log/
+
+# 2. Also clean ROS2 cache (optional but thorough)
+rm -rf ~/.ros/log/
+
+# 3. Rebuild from scratch
+colcon build --packages-select self_driving_car --symlink-install
+
+# 4. Source the new setup
+source install/setup.bash
+
+#######################################################
+
+mkdir -p ~/rviz_configs
+cat > ~/rviz_configs/lidar_debug.rviz << 'EOF'
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Enabled: true
+      Name: Grid
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Name: TF
+      Marker Scale: 0.3
+      Show Arrows: true
+      Show Names: true
+    - Class: rviz_default_plugins/PointCloud2
+      Enabled: true
+      Name: PointCloud
+      Topic: /point_cloud
+      Selectable: true
+      Size (Pixels): 3
+      Style: Points
+      Value: true
+      Alpha: 0.8
+      Color Transformer: AxisColor
+      Position Transformer: XYZ
+      Axis: Z
+      Use Fixed Frame: true
+      Use rainbow: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: base_link
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Target Frame: base_link
+      Value: Orbit (rviz)
+    Saved: ~
+EOF
+
+
+
+rviz2 \
+  -d ~/rviz_configs/lidar_debug.rviz \
+  --display-config ~/rviz_configs/lidar_debug.rviz
+  
+  rviz2 -d ~/rviz_configs/lidar_debug.rviz
+  

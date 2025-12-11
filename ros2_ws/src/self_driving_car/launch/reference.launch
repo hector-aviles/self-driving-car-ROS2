@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Arguments -->
+  <arg name="max_speed" default="20.0"/>
+  <arg name="k_following" default="10.0"/>
+  <arg name="dist_to_car" default="20.0"/>
+  <arg name="goal_dist" default="200.0"/>
+  <arg name="no_gui" default="false"/>
+
+  <!-- Environment variable -->
+  <env name="WEBOTS_HOME" value="/usr/local/webots"/>
+
+  <!-- Webots simulation -->
+  <!-- Note: webots_ros2_driver setup may vary -->
+  <!-- You might need to adapt this based on your actual webots setup -->
+  <node pkg="webots_ros2_driver" exec="webots_launcher" name="webots_simulation" output="screen">
+    <param name="world" value="$(find-pkg-share self_driving_car)/worlds/reference.wbt"/>
+    <param name="mode" value="realtime"/>
+    <param name="no_gui" value="$(var no_gui)"/>
+  </node>
+
+  <!-- Your nodes -->
+  <node pkg="self_driving_car" exec="lane_detector_canny_hough" name="lane_detector" output="screen"/>
+  <node pkg="self_driving_car" exec="obstacle_detector" name="obstacle_detector" output="screen"/>
+  
+  <node pkg="self_driving_car" exec="behaviors" name="behaviors" output="screen">
+    <param name="max_speed" value="$(var max_speed)"/>
+    <param name="k_following" value="$(var k_following)"/>
+    <param name="dist_to_car" value="$(var dist_to_car)"/>
+    <param name="goal_dist" value="$(var goal_dist)"/>
+  </node>
+
+  <node pkg="self_driving_car" exec="success" name="success" output="screen"/>
+  <node pkg="self_driving_car" exec="stop" name="stop" output="screen"/>
+  <node pkg="self_driving_car" exec="lane_identification" name="lane_identification" output="screen"/>
+
+  <!-- Static transforms - NOTE: Using base_link instead of car_link -->
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="car_to_lidar"
+    args="0 0 2.0 0 0 0 car_link lidar_link"/>
+
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="car_to_camera"
+    args="1.2 0 1.5 0 0 0 car_link camera_link"/>
+
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="car_to_gyro"
+    args="0 0 0.1 0 0 0 car_link gyro_link"/>
+
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="car_to_accel"
+    args="0 0 0.1 0 0 0 car_link accel_link"/>
+
+  <node pkg="tf2_ros" exec="static_transform_publisher" name="car_to_gps"
+    args="0 0 0.1 0 0 0 car_link gps_link"/>
+
+</launch>

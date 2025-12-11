@@ -1,3 +1,4 @@
+import os
 from setuptools import setup
 from glob import glob
 
@@ -14,6 +15,10 @@ setup(
             'share/ament_index/resource_index/packages',
             ['resource/' + package_name]
         ),
+        
+        # Install the URDF directory
+        (os.path.join('share', package_name, 'urdf'),
+            glob('urdf/*.urdf')),
 
         # package.xml
         (
@@ -24,7 +29,7 @@ setup(
         # Launch files
         (
             'share/' + package_name + '/launch',
-            glob('launch/*.py')
+            glob('launch/*') # glob('launch/*.py')
         ),
 
         # Worlds

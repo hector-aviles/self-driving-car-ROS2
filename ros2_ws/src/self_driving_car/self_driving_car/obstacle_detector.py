@@ -66,9 +66,31 @@ class ObstacleDetectorNode(Node):
             # Note: ros2_numpy might have slightly different API than ros_numpy
             # You may need to adjust this conversion based on your ros2_numpy version
             xyz = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
+
+            # DEBUG: Log basic point cloud info
+            self.get_logger().info(f"Total points: {xyz.shape[0]}")
+            if xyz.shape[0] > 0:
+              self.get_logger().info(f"X range: [{xyz[:,0].min():.2f}, {xyz[:,0].max():.2f}]")
+              self.get_logger().info(f"Y range: [{xyz[:,1].min():.2f}, {xyz[:,1].max():.2f}]")
+              self.get_logger().info(f"Z range: [{xyz[:,2].min():.2f}, {xyz[:,2].max():.2f}]")
             
             # Filter points on floor and higher points
             xyz = xyz[(xyz[:,2] > -1) & (xyz[:,2] < 0.3)]
+            self.get_logger().info(f"Points after Z filter: {xyz.shape[0]}")
+            
+            # Add visualization of point distribution
+            if xyz.shape[0] > 0:
+               # Count points in different quadrants
+               front_right = xyz[(xyz[:,0] > 0) & (xyz[:,1] < 0)].shape[0]
+               front_left = xyz[(xyz[:,0] > 0) & (xyz[:,1] > 0)].shape[0]
+               rear_right = xyz[(xyz[:,0] < 0) & (xyz[:,1] < 0)].shape[0]
+               rear_left = xyz[(xyz[:,0] < 0) & (xyz[:,1] > 0)].shape[0]
+            
+               self.get_logger().info(
+                  f"Quadrants - FR: {front_right}, FL: {front_left}, "
+                  f"RR: {rear_right}, RL: {rear_left}"
+               )            
+            
             
             # Define regions and count points
             N_points  = xyz[(xyz[:,0] >  2.5) & (xyz[:,0] <  25) & (xyz[:,1] < 1.5) & (xyz[:,1] > -1.5)]
@@ -86,6 +108,7 @@ class ObstacleDetectorNode(Node):
             free_W  = W_points.shape[0] < 50
             free_SW = SW_points.shape[0] < 50
 
+            print("NE_points.shape[0]: ", NE_points.shape[0], flush = True)  
             free_NE  = NE_points.shape[0] < 50    
             free_E  = E_points.shape[0] < 50   
             free_SE  = SE_points.shape[0] < 50   
