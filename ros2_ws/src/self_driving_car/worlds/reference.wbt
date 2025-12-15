@@ -125,7 +125,6 @@ DEF BMW_X5 BmwX5 {
     VelodyneHDL-64E {
       name "Velodyne HDL-64E"
       translation 0.3 0 0.15
-      rotation 0 1 0 0
       enablePhysics FALSE
     }
   ]

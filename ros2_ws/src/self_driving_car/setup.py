@@ -15,10 +15,6 @@ setup(
             'share/ament_index/resource_index/packages',
             ['resource/' + package_name]
         ),
-        
-        # Install the URDF directory
-        (os.path.join('share', package_name, 'urdf'),
-            glob('urdf/*.urdf')),
 
         # package.xml
         (

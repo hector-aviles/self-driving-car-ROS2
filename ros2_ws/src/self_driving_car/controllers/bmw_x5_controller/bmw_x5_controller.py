@@ -21,6 +21,18 @@ FRAME_LIDAR = "lidar_link"
 FRAME_CAMERA = "camera_link"
 FRAME_IMU = "imu_link"
 
+# LiDAR yaw correction (right)
+LIDAR_YAW_OFFSET = -math.radians(12.0)
+
+# LiDAR pitch correction (flatten hill)
+LIDAR_PITCH_OFFSET = -math.radians(30.0)  # 🔧 tune this
+
+COS_YAW = math.cos(LIDAR_YAW_OFFSET)
+SIN_YAW = math.sin(LIDAR_YAW_OFFSET)
+
+COS_PITCH = math.cos(LIDAR_PITCH_OFFSET)
+SIN_PITCH = math.sin(LIDAR_PITCH_OFFSET)
+
 
 class BMWX5Controller(Node):
     def __init__(self):
@@ -80,7 +92,9 @@ class BMWX5Controller(Node):
         self.camera_interval = 0.1
         self.imu_interval = 0.02
 
-        self.get_logger().info("BMW X5 controller initialized (no TF broadcasting)")
+        self.get_logger().info(
+            "BMW X5 controller initialized (LiDAR yaw corrected by -15°)"
+        )
 
     def make_ros_time(self, sim_time_seconds: float) -> RosTime:
         t = RosTime()
@@ -109,8 +123,22 @@ class BMWX5Controller(Node):
                 if points:
                     buf = bytearray()
                     for p in points:
-                        buf.extend(struct.pack('<fff',
-                                               float(p.x), float(p.y), 0.0))
+                        x = float(p.x)
+                        y = float(p.y)
+                        z = float(p.z)
+
+                        # ---- YAW rotation (Z axis) ----
+                        x_yaw = x * COS_YAW - y * SIN_YAW
+                        y_yaw = x * SIN_YAW + y * COS_YAW
+                        z_yaw = z
+
+                        # ---- PITCH rotation (Y axis) ----
+                        x_rot = x_yaw * COS_PITCH + z_yaw * SIN_PITCH
+                        y_rot = y_yaw
+                        z_rot = -x_yaw * SIN_PITCH + z_yaw * COS_PITCH
+
+                        buf.extend(struct.pack('<fff', x_rot, y_rot, z))
+
                     self.msg_pc.data = bytes(buf)
                     self.msg_pc.width = len(points)
                     self.msg_pc.row_step = self.msg_pc.point_step * len(points)
