@@ -22,7 +22,7 @@ ros2 pkg create \
   utils \
   --dependencies rclpy geometry_msgs webots_ros2_driver sensor_msgs std_msgs rosgraph_msgs 
 
-colcon build
+colcon build --packages-select simple
 
 source install/setup.bash
 

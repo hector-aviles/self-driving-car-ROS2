@@ -1,0 +1,159 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/velodyne/protos/VelodyneHDL-64E.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/RoadIntersection.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/toyota/ToyotaPriusSimple.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.21298112539502176 0.25158092754059924 -0.9441112631058278 1.4619619089215934
+  position 18.98206778431824 273.1141493089643 143.84434691342602
+}
+StraightRoadSegment {
+  width 11
+  length 70
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+RoadIntersection {
+  translation 80 0 0
+  rotation 0 0 1 -2.3561956132800117
+  roadsWidth 11
+  startRoadsStartLine [
+    "textures/road_line_dashed.png"
+    "textures/road_line_dashed.png"
+  ]
+  boundingObject TRUE
+}
+StraightRoadSegment {
+  translation 90 0 0
+  name "road(1)"
+  width 11
+  length 70
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+StraightRoadSegment {
+  translation 80 10 0
+  rotation 0 0 1 1.570795613280012
+  name "road(2)"
+  width 11
+  length 70
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+StraightRoadSegment {
+  translation 80 -10 0
+  rotation 0 0 1 -1.5707996938995747
+  name "road(3)"
+  width 11
+  length 70
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 2.6838889266797873e-08
+  hidden position2_0_0 -9.595073117770885e-06
+  hidden position_0_1 2.7916877100674294e-08
+  hidden position2_0_1 -9.595096765755833e-06
+  hidden position_0_2 0.20475283427782395
+  hidden position_0_3 -3.7071458838485567
+  hidden linearVelocity_0 2.1325600950031695e-06 -1.7170035096657433e-08 1.651367913338789e-06
+  hidden angularVelocity_0 6.436803906330349e-08 7.994656561569057e-06 -1.1672427254869403e-12
+  hidden translation_1 0 0 0
+  hidden rotation_1 1.34193921363974e-08 0.9999960879900046 -0.002797142235725249 9.595098251244355e-06
+  hidden linearVelocity_1 1.6268454517333252e-06 -1.309962916230965e-08 -2.9029346605854735e-07
+  hidden angularVelocity_1 5.795404001580804e-08 7.198123700974044e-06 -1.1321979837295767e-12
+  hidden translation_2 0 0 0
+  hidden rotation_2 -1.395837947053428e-08 -0.9999957674490125 -0.0029094817511884983 9.59514453405743e-06
+  hidden linearVelocity_2 1.6268431977989904e-06 -1.3099551884329246e-08 -2.9029397766765277e-07
+  hidden angularVelocity_2 5.7955982202835334e-08 7.198122367588775e-06 -1.0481891153864099e-12
+  hidden translation_3 0 0 0
+  hidden rotation_3 0 -1 0 0.20475283427782337
+  hidden linearVelocity_3 1.7879033813134015e-06 -1.4394327875772669e-08 2.9274104875348875e-07
+  hidden angularVelocity_3 3.849292170627493e-08 4.781316783255767e-06 -9.80838869800349e-13
+  hidden translation_4 0 0 0
+  hidden rotation_4 0 -1 0 3.7071458838485567
+  hidden linearVelocity_4 1.7879013210248163e-06 -1.439417963778756e-08 2.92740538513163e-07
+  hidden angularVelocity_4 3.850125800408813e-08 4.781311095830699e-06 -9.39660232410848e-13
+  translation 15.282451256571814 -2.4636220266433306 0.3169177551767883
+  rotation -0.001969012376506054 -0.48720850987948733 -0.873283453920473 0.009217608911647857
+  color 0.643137 0 0
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    VelodyneHDL-64E {
+      translation 0.3 0 0.15
+      rotation 0 1 0 0
+      enablePhysics FALSE
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+DEF vehicle_transverse_2 ToyotaPriusSimple {
+  translation 77.2005 52.5395 0.4
+  rotation 0 0 1 -1.5707953071795862
+  name "DEF vehicle_transverse_2"
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

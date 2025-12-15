@@ -1,0 +1,154 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/velodyne/protos/VelodyneHDL-64E.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a29.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3Simple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/citroen/CitroenCZero.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.0012499196248474504 0.9999351790718558 0.011317038281590794 0.22001414675263248
+  position -128.8878428336806 -1.392724285419522 48.78193304195853
+}
+StraightRoadSegment {
+  width 11
+  length 300
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 3.630377301375652e-08
+  hidden position2_0_0 6.931417077730073e-05
+  hidden position_0_1 3.588152595342444e-08
+  hidden position2_0_1 -0.0005071033491829949
+  hidden position_0_2 -0.00038830643349500133
+  hidden position_0_3 -0.002959835270369112
+  hidden linearVelocity_0 0.00012693687624896327 -2.836532083531798e-06 0.00047037533942259575
+  hidden angularVelocity_0 7.671781973653885e-06 0.0002996674432529679 -2.2781435032909753e-07
+  hidden rotation_1 -1.8151884017154613e-08 -0.9999998628393997 -0.0005237567962316753 6.931417965025545e-05
+  hidden linearVelocity_1 0.00010548242386968483 -2.7643657066729406e-06 -8.113802994000208e-07
+  hidden angularVelocity_1 7.586477008245322e-06 0.00029578084247748046 -2.2934935309566364e-07
+  hidden rotation_2 -1.7940762931800496e-08 -0.9999999974966656 -7.075781525104873e-05 0.0005071033504826995
+  hidden linearVelocity_2 0.00010510574800908747 -2.760542652137763e-06 -1.0151439516788479e-06
+  hidden angularVelocity_2 7.584462186308103e-06 0.0002955606864442564 -2.357968278581204e-07
+  hidden rotation_3 0 1 0 0.00038830643326827563
+  hidden linearVelocity_3 0.00011343070967817734 -2.224316554522059e-06 2.1086283143066902e-05
+  hidden angularVelocity_3 7.665473763771824e-06 0.0003030860947056503 -2.280289529706274e-07
+  hidden rotation_4 0 -0.9999999999999999 0 0.002959835270341893
+  hidden linearVelocity_4 0.00011326685310539131 -2.1955367909580716e-06 1.0479324311587775e-05
+  hidden angularVelocity_4 7.719012192989132e-06 0.0003027412614513013 -2.2836475505757532e-07
+  translation 47.940442427481905 -2.926079239821147 0.3172482429338889
+  rotation -0.01666405028458333 -0.4579214762214283 -0.8888364478593915 0.009574966517489632
+  color 0.643137 0 0
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    VelodyneHDL-64E {
+      translation 0.3 0 0.15
+      rotation 0 1 0 0
+      enablePhysics FALSE
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+DEF vehicle_1 LincolnMKZSimple {
+  translation 20.9548 2.6 0.45
+  color 0.2 0.5 0.8
+  name "vehicle_1"
+}
+DEF vehicle_2 TeslaModel3Simple {
+  translation 9.74457 2.51 0.4
+  color 1 0.5 0
+  name "vehicle_2"
+}
+DEF CitroenCZero_1 CitroenCZero {
+  hidden position_0_0 -2.2052486296997327e-07
+  hidden position2_0_0 -0.00020466800966187232
+  hidden position_0_1 -2.6592780750869266e-07
+  hidden position2_0_1 0.007657289896538271
+  hidden position_0_2 9.000455130637071e-08
+  hidden position_0_3 9.000449538752878e-08
+  hidden linearVelocity_0 0.005836009783576143 -0.17887000681002563 0.05468776135182774
+  hidden angularVelocity_0 0.22837011627401044 0.007078889196250045 -0.0012140563588305087
+  hidden rotation_1 -1.1026236748021104e-07 0.9999994195232667 0.0010774753443635364 0.00020466812552354528
+  hidden linearVelocity_1 0.01023493852050243 -0.3330535653170462 0.003137280508595073
+  hidden angularVelocity_1 0.22837074231316995 0.007058734733895929 0.0015707066118713674
+  hidden rotation_2 -1.3296390367416394e-07 0.9999999993969554 3.472854124247384e-05 0.007657289901086939
+  hidden linearVelocity_2 0.0008988664355415386 -0.02847115299170952 0.005654431749230842
+  hidden angularVelocity_2 0.2283708495664339 0.007055641464494439 0.0019756260644230874
+  hidden rotation_3 0 -1 0 8.940696716308595e-08
+  hidden linearVelocity_3 0.010142283649413704 -0.33274447215888536 -0.008370051550849108
+  hidden angularVelocity_3 0.22837006953639208 0.0070791830417493646 -0.001214937973405815
+  hidden rotation_4 0 1 0 8.940696716308595e-08
+  hidden linearVelocity_4 0.0010741757163671515 -0.03619010289707636 -0.005942554664712655
+  hidden angularVelocity_4 0.2283700695341934 0.0070791830413837135 -0.0012149379420468207
+  translation 214.9186109548484 2.3331213645229334 0.7493510924389767
+  rotation -0.003861802974879127 0.7039810748254357 0.7102082319752479 -3.1335429667992933
+  name "CitroenCZero_1"
+  controller "CitroenCZero_controller"
+  synchronization FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a29 {
+    }
+  ]
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

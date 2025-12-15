@@ -1,0 +1,97 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/velodyne/protos/VelodyneHDL-32E.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.2287999270442029 0.6947863010454577 -0.6818523221813783 0.899851512047341
+  position -21.79556511996065 26.920275716175667 26.199596257348126
+}
+BmwX5 {
+  hidden position_0_0 -4.5100819798448197e-10
+  hidden position2_0_0 -0.11621127999910054
+  hidden position_0_1 4.426665671984592e-10
+  hidden position2_0_1 -0.11621128111245398
+  hidden position_0_2 0.23445590006814868
+  hidden position_0_3 0.23445635133410714
+  hidden linearVelocity_0 -5.2660837458170343e-05 1.2894344559616583e-10 -0.00015659644213179486
+  hidden angularVelocity_0 -2.878869320539833e-10 -0.00011861912538388841 -2.284733130402729e-12
+  hidden rotation_1 -2.2550409899224099e-10 1 3.876564385541527e-09 0.11621127999910244
+  hidden linearVelocity_1 -4.58049330767406e-05 1.0552964994636021e-10 8.881609959620312e-05
+  hidden angularVelocity_1 -2.9286549065641115e-10 -0.00011947071783970912 1.1302460652501027e-11
+  hidden rotation_2 -2.2133328359922958e-10 -1 -3.804865277977055e-09 0.11621128111245409
+  hidden linearVelocity_2 -4.580493450059068e-05 1.1405115640648838e-10 8.881609644978758e-05
+  hidden angularVelocity_2 -2.8587039194522636e-10 -0.00011947071867145935 -1.567698925411896e-11
+  hidden rotation_3 0 -1 0 0.234455900068149
+  hidden linearVelocity_3 -4.8939117577271284e-05 1.1685534539897683e-10 0.00010728947259402641
+  hidden angularVelocity_3 -3.364263893236697e-10 -0.00013089021687157516 -1.8761371042345198e-12
+  hidden rotation_4 0 1 0 0.2344563513341071
+  hidden linearVelocity_4 -4.893912013300926e-05 1.2329895097025714e-10 0.00010728946945746701
+  hidden angularVelocity_4 -2.995848742582501e-10 -0.00013089022369967523 -2.741040496079135e-12
+  translation -0.682543677000983 1.380665104729023e-06 0.3169197903007116
+  rotation 0 0 1 0                     
+  controller "velodyne_controller"
+  sensorsSlotTop [
+    VelodyneHDL-32E {
+      translation 0.3 0 0.15
+      enablePhysics FALSE
+    }
+    InertialUnit {
+      translation 0 0 0.5
+      name "IMU"
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Robot {
+  controller "supervisor"
+}
+Floor {
+  size 100 100
+}
+LincolnMKZSimple {
+  translation 7.88 -2.49 0.4
+  name "vehicle(1)"
+}
+Pedestrian {
+  translation 10.45 1.21 1.27
+}
