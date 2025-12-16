@@ -16,10 +16,6 @@ setup(
             ['resource/' + package_name]
         ),
         
-        # Install the URDF directory
-        #(os.path.join('share', package_name, 'urdf'),
-        #    glob('urdf/*.urdf')),
-        
         # package.xml
         (
             'share/' + package_name,
@@ -40,9 +36,10 @@ setup(
             'share/' + package_name + '/worlds/textures',
             glob('worlds/textures/*')
         ),
+        
+        # Supervisor
+        ('share/' + package_name + '/controllers/supervisor', glob('controllers/supervisor/*')),        
 
-        # Controllers
-        ('share/' + package_name + '/controllers/velodyne_controller',  glob('controllers/velodyne_controller/*'))
     ],
 
     install_requires=['setuptools', 'pandas', 'scikit-learn', 'numpy'],

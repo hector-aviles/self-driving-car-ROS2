@@ -89,32 +89,6 @@ def generate_launch_description():
         output="screen"
     )
     
-    # TF static transforms
-    '''
-    tf_map_to_car = Node(
-       package="tf2_ros",
-       executable="static_transform_publisher",
-       name="tf_map_to_car",  # Renamed for clarity
-       arguments=[
-         "0", "0", "0",  # Initial static pose; will be overridden dynamically later
-         "0", "0", "0",
-         "map", "car_link"
-      ]
-    ) 
-    '''    
-    
-    robot_state_pub = Node(
-       package="robot_state_publisher",
-       executable="robot_state_publisher",
-       output="screen",
-       parameters=[{
-           "use_sim_time": True,
-           "robot_description": pathlib.Path(
-               os.path.join(pkg_dir, "urdf", "bmw.urdf")
-           ).read_text()
-       }]
-    )    
-    
     # ROS 2 Nodes
     ros_nodes = [  
     
@@ -134,7 +108,6 @@ def generate_launch_description():
        set_webots_env,
        log_env,
        webots_process,
-       robot_state_pub,  # Handles car_link -> lidar_link correctly
        *ros_nodes
     ])
 

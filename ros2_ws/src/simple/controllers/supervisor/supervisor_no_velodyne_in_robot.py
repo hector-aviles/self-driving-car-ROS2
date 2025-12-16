@@ -6,10 +6,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Empty, Float64
 from geometry_msgs.msg import Pose2D, Twist
-from controller import Supervisor, Lidar
-from sensor_msgs.msg import PointCloud2, PointField
-from std_msgs.msg import Header
-import struct
+from controller import Supervisor
 
 TIME_STEP = 10
 MAX_VEHICLES = 5
@@ -18,22 +15,6 @@ robot = Supervisor()
 class SupervisorNode(Node):
     def __init__(self):
         super().__init__('supervisor_node')
-        
-        # --- Velodyne HDL-64E ---
-        self.lidar = robot.getDevice("velodyne")
-        if self.lidar is None:
-           self.get_logger().error("Velodyne device NOT found")
-        else:
-           self.get_logger().info("Velodyne device FOUND")
-        
-        self.lidar.enable(TIME_STEP)
-        self.lidar.enablePointCloud()
-
-        self.pc_pub = self.create_publisher(
-             PointCloud2,
-             "/point_cloud",
-             10
-        )
         
         # Initialize vehicle speeds
         self.speed_vehicle_left_lane = 0.0
@@ -106,40 +87,10 @@ class SupervisorNode(Node):
             self.callback_start_signal,
             10
         )
-    
+        
+        
         # Timer for main control loop
         self.timer = self.create_timer(TIME_STEP / 1000.0, self.control_loop)
-    
-    def publish_point_cloud(self):
-        points = self.lidar.getPointCloud()
-        if not points:
-            return
-
-        msg = PointCloud2()
-        msg.header = Header()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "velodyne"
-
-        msg.height = 1
-        msg.width = len(points)
-        msg.is_dense = False
-        msg.is_bigendian = False
-
-        msg.fields = [
-            PointField(name='x', offset=0,  datatype=PointField.FLOAT32, count=1),
-            PointField(name='y', offset=4,  datatype=PointField.FLOAT32, count=1),
-            PointField(name='z', offset=8,  datatype=PointField.FLOAT32, count=1),
-        ]
-
-        msg.point_step = 12
-        msg.row_step = msg.point_step * msg.width
-
-        buffer = []
-        for p in points:
-            buffer.append(struct.pack('fff', p.x, p.y, p.z))
-
-        msg.data = b''.join(buffer)
-        self.pc_pub.publish(msg)    
     
     def initialize_vehicle_positions(self):
         """Initialize vehicle coordinates with random offsets"""
@@ -202,17 +153,12 @@ class SupervisorNode(Node):
             self.get_logger().info('Start signal received - Beginning supervision')
     
     def control_loop(self):
-    
-        if self.lidar:
-            count = self.lidar.getNumberOfPoints()
-            self.get_logger().info(f"LiDAR points available: {count}")
-    
         if robot.step(TIME_STEP) == -1:
             self.get_logger().info('Simulation ended')
             return
         
-       # if not self.start_signal_received:
-       #     return
+        if not self.start_signal_received:
+            return
         
         # Update and publish positions for all vehicles
         for i, vehicle in enumerate(self.vehicles):
@@ -267,9 +213,6 @@ class SupervisorNode(Node):
                  
         # Publish BMW pose
         self.publish_bmw_pose()
-        
-        # Publish point cloud
-        self.publish_point_cloud()
     
     def publish_bmw_pose(self):
         if self.bmw is not None:

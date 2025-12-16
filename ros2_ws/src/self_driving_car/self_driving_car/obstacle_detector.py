@@ -79,21 +79,21 @@ class ObstacleDetectorNode(Node):
             
             # Determine if regions are free based on point count thresholds
             free_N  = N_points.shape[0] < 1000
-            print('free_N=', N_points.shape[0], flush = True)
+            #print('free_N=', N_points.shape[0], flush = True)
             free_NW = NW_points.shape[0] < 5000
-            print('free_NW=', NW_points.shape[0], flush = True)            
+            #print('free_NW=', NW_points.shape[0], flush = True)            
             free_W  = W_points.shape[0] < 5000
-            print('free_W=', W_points.shape[0], flush = True)
+            #print('free_W=', W_points.shape[0], flush = True)
             free_SW = SW_points.shape[0] < 5000
-            print('free_SW=', SW_points.shape[0], flush = True)
+            #print('free_SW=', SW_points.shape[0], flush = True)
             
             #print("NE_points.shape[0]: ", NE_points.shape[0], flush = True)  
             free_NE  = NE_points.shape[0] < 5000
-            print('free_NE=', NE_points.shape[0], flush = True)            
+            #print('free_NE=', NE_points.shape[0], flush = True)            
             free_E  = E_points.shape[0] < 5000
-            print('free_E=', E_points.shape[0], flush = True)            
+            #print('free_E=', E_points.shape[0], flush = True)            
             free_SE  = SE_points.shape[0] < 5000   
-            print('free_SE=', SE_points.shape[0], flush = True)
+            #print('free_SE=', SE_points.shape[0], flush = True)
             
             # Publish free space information
             self.publish_bool(self.pub_obs_N, free_N)
