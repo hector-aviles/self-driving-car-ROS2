@@ -189,16 +189,15 @@ class BMWX5Controller(Node):
                 if points:
                     buf = bytearray()
                     for p in points:
-                        x, y, z = float(p.x), float(p.y), float(p.z)
-
-                        # Yaw correction
-                        x_yaw = x * COS_YAW - y * SIN_YAW
-
-                        # Pitch compensation (hill flattening)
-                        z_corr = z + 0.337 * x_yaw
-
-                        buf.extend(struct.pack('<fff', x, y, z_corr))
-
+                        # Check for NaN values from Webots
+                        if math.isnan(p.x) or math.isnan(p.y) or math.isnan(p.z):
+                            continue
+                        buf.extend(struct.pack('<fff',
+                                               float(p.x), float(p.y), float(p.z)))
+                    
+                    if len(buf) == 0:
+                        continue
+                        
                     self.msg_pc.data = bytes(buf)
                     self.msg_pc.width = len(points)
                     self.msg_pc.row_step = self.msg_pc.point_step * len(points)

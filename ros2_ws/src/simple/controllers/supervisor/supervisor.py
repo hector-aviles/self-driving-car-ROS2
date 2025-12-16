@@ -19,12 +19,12 @@ class SupervisorNode(Node):
     def __init__(self):
         super().__init__('supervisor_node')
         
-        # --- Velodyne HDL-64E ---
-        self.lidar = robot.getDevice("velodyne")
+        # --- Lidar ---
+        self.lidar = robot.getDevice("lidar")
         if self.lidar is None:
-           self.get_logger().error("Velodyne device NOT found")
+           self.get_logger().error("lidar device NOT found")
         else:
-           self.get_logger().info("Velodyne device FOUND")
+           self.get_logger().info("lidar device FOUND")
         
         self.lidar.enable(TIME_STEP)
         self.lidar.enablePointCloud()
@@ -118,7 +118,7 @@ class SupervisorNode(Node):
         msg = PointCloud2()
         msg.header = Header()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "velodyne"
+        msg.header.frame_id = "lidar"
 
         msg.height = 1
         msg.width = len(points)

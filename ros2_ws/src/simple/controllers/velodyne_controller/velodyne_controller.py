@@ -30,7 +30,7 @@ class SimpleController(Node):
         self.driver = Driver()
 
         # Devices
-        self.lidar = self.driver.getDevice('Velodyne HDL-32E')
+        self.lidar = self.driver.getDevice('lidar')
         self.lidar.enable(TIME_STEP)
         try:
             self.lidar.enablePointCloud()
@@ -122,15 +122,12 @@ class SimpleController(Node):
                     if len(buf) == 0:
                         continue
                     
-                    # APPLY COMPENSATION HERE
-                    corrected_data = self.rotate_pointcloud(bytes(buf))
-                    
-                    self.msg_pc.data = corrected_data  # <-- Use corrected data
-                    self.msg_pc.width = len(buf) // 12  # 12 bytes per point
-                    self.msg_pc.row_step = self.msg_pc.point_step * (len(buf) // 12)
+                    self.msg_pc.data = bytes(buf)
+                    self.msg_pc.width = len(points)
+                    self.msg_pc.row_step = self.msg_pc.point_step * len(points)
                     self.msg_pc.header.stamp = self.make_ros_time(sim_t)
-                    self.pub_point_cloud.publish(self.msg_pc)
-
+                    self.pub_pc.publish(self.msg_pc)
+                    
 def main(args=None):
     rclpy.init(args=args)
     node = SimpleController()
