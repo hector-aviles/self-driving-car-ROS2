@@ -95,10 +95,18 @@ DEF BMW_X5 BmwX5 {
       height 960
       noise 0.02
     }
-    VelodyneHDL-64E {
-      translation 0.3 0 0.15
-      rotation 0 1 0 0
-      enablePhysics FALSE
+    Lidar {
+       name "Velodyne HDL-64E"
+       translation 0.3 0 0.15
+       rotation 0 0 0 0
+       type "fixed" 
+       fieldOfView  6.28318530718
+       verticalFieldOfView 0.4677     # ~26.8°
+       numberOfLayers 64
+       horizontalResolution 4500
+       maxRange 120.0
+       minRange 0.05
+       noise 0.02
     }
   ]
   interior FALSE

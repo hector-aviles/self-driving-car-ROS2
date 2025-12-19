@@ -49,7 +49,7 @@ source install/setup.bash
 
 tree -L 4 src/webots_ros2*
 
-
+sudo apt install ros-${ROS_DISTRO}-radar-msgs
 pip install empy
 pip install lark-parser
 pip install setuptools
@@ -196,3 +196,5 @@ rviz2 \
   
   rviz2 -d ~/rviz_configs/lidar_debug.rviz
   
+  colcon build --packages-select simple
+
