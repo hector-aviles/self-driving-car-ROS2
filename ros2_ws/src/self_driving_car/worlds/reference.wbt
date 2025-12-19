@@ -123,7 +123,7 @@ DEF BMW_X5 BmwX5 {
       noise 0.02
     }
     Lidar {
-       name "lidar"
+       name "Velodyne HDL-64E"
        translation 0.3 0 0.15
        rotation 0 0 0 0
        type "fixed" 

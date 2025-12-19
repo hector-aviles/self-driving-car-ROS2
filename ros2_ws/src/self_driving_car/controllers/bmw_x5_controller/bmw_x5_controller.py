@@ -228,7 +228,7 @@ class BMWX5Controller(Node):
                     r.doppler_velocity = float(t.speed)
                     r.azimuth = float(t.azimuth)
                     r.elevation = float('inf')
-                    r.amplitude = float(t.received_power)
+                    r.amplitude = float(t.receiver_power)
                     scan.returns.append(r)
 
                 self.pub_radar.publish(scan)
