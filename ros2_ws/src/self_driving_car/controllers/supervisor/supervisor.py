@@ -45,7 +45,7 @@ class SupervisorNode(Node):
         self.initialize_vehicle_positions()
         
         # ROS 2 Publishers
-        self.pub_bmw_pose = self.create_publisher(Pose2D, '/self_driving_pose', 10)
+        self.pub_bmw_pose = self.create_publisher(Pose2D, '/bmw_pose', 10)
 
         self.pub_vehicles_pose = [
             self.create_publisher(Pose2D, f"/vehicle_{i+1}_pose", 10)

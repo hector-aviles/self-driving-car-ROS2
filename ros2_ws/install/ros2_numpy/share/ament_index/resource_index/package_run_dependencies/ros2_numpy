@@ -1,1 +1,1 @@
-/home/dell/source_code/self-driving-car-ROS2/ros2_ws/build/ros2_numpy/ament_cmake_index/share/ament_index/resource_index/package_run_dependencies/ros2_numpy
+geometry_msgs;nav_msgs;python3-transforms3d;python3-numpy;sensor_msgs;tf_transformations;ament_cmake_pytest;python3-pytest;rclpy

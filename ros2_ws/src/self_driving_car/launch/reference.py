@@ -124,15 +124,15 @@ def generate_launch_description():
         ]
     )
 
-    static_tf_imu = Node(
+    static_tf_accelerometer = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
-        name="tf_imu",
+        name="tf_accelerometer",
         output="screen",
         arguments=[
             "0", "0", "0.1",
             "0", "0", "0",
-            "car_link", "imu_link"
+            "car_link", "accelerometer_link"
         ]
     )
     '''
@@ -171,6 +171,11 @@ def generate_launch_description():
         Node(package="self_driving_car", executable="success",
              name="success", output="screen",
              parameters=[{"use_sim_time": True}]),
+
+        Node(package="self_driving_car", executable="latent_collision_detector",
+             name="latent_collision_detector", output="screen",
+             parameters=[{"use_sim_time": True}]),
+
     ]
 
     # Launch arguments
@@ -194,7 +199,7 @@ def generate_launch_description():
        webots_process,
        static_tf_camera,
        static_tf_lidar,
-       static_tf_imu,
+       static_tf_accelerometer,
        #robot_state_pub,
        *ros_nodes
     ])

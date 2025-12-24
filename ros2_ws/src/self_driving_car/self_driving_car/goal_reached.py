@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This node determines if the car has reached the goal distance 
+This node determines if the BMW car has reached the goal distance 
 """
 import rclpy
 from rclpy.node import Node
@@ -27,7 +27,7 @@ class GoalReachedNode(Node):
         # Create subscriber
         self.sub_curr_pose = self.create_subscription(
             Pose2D, 
-            "/self_driving_pose", 
+            "/bmw_pose", 
             self.callback_curr_pose, 
             10
         )

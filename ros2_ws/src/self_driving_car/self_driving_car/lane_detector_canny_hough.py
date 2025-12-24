@@ -18,7 +18,7 @@ from cv_bridge import CvBridge
 
 class LaneDetectorNode(Node):
     def __init__(self):
-        super().__init__('lane_detector')
+        super().__init__('lane_detector_canny_hough')
         
         self.bridge = CvBridge()
         
@@ -27,7 +27,7 @@ class LaneDetectorNode(Node):
         # Create subscriber
         self.sub_rgb_image = self.create_subscription(
             Image, 
-            '/camera/rgb/raw', 
+            '/bmw_frontal_camera/rgb/raw', 
             self.callback_rgb_image, 
             10
         )

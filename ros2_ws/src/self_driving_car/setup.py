@@ -53,16 +53,17 @@ setup(
     tests_require=['pytest'],
 
     entry_points={
-        'console_scripts': [
-            'lane_detector_canny_hough = self_driving_car.lane_detector_canny_hough:main',
-            'obstacle_detector = self_driving_car.obstacle_detector:main',
-            'behaviors = self_driving_car.behaviors:main',
-            'lane_identification = self_driving_car.lane_identification:main',
-            'goal_reached = self_driving_car.goal_reached:main',
-            'success = self_driving_car.success:main',
-            'stop = self_driving_car.stop:main',
-            'test_AP = self_driving_car.test_AP:main'  
-        ],
+      'console_scripts': [
+         'lane_detector_canny_hough = self_driving_car.lane_detector_canny_hough:main',
+         'obstacle_detector = self_driving_car.obstacle_detector:main',
+         'behaviors = self_driving_car.behaviors:main',
+         'lane_identification = self_driving_car.lane_identification:main',
+         'goal_reached = self_driving_car.goal_reached:main',
+         'success = self_driving_car.success:main',
+         'stop = self_driving_car.stop:main',
+         'latent_collision_detector=self_driving_car.latent_collision_detector:main',
+         'test_AP = self_driving_car.test_AP:main'  
+      ],
     },
 )
 

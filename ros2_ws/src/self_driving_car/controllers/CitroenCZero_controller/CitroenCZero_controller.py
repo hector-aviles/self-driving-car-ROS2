@@ -59,7 +59,7 @@ class CitroenCZero_Controller(Node):
         # Subscribers
         self.create_subscription(
             Float64,
-            "/speed_vehicles_left_lane",
+            "/CitroenCZero/speed",
             self.callback_speed,
             10
         )
@@ -77,13 +77,13 @@ class CitroenCZero_Controller(Node):
             10
         )
 
-        self.get_logger().info("supervisor_CitroenCZero waiting for /CitroenCZero_started ...")
+        self.get_logger().info("supervisor_CitroenCZero waiting for /policy_started...")
 
         # Wait for start signal through temporary subscription
         self.start_signal_received = False
         self.create_subscription(
             Empty,
-            "/CitroenCZero_started",
+            "/policy_started",
             self.callback_start_signal,
             10
         )

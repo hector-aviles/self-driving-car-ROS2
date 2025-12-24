@@ -111,7 +111,7 @@ class BehaviorsNode(Node):
         self.sub_dist_to_obstacle = self.create_subscription(
             Float64, "/obstacle/distance", self.callback_dist_to_obstacle, 10)
         self.sub_current_pose = self.create_subscription(
-            Pose2D, "/self_driving_pose", self.callback_current_pose, 10)
+            Pose2D, "/bmw_pose", self.callback_current_pose, 10)
         self.sub_free_north = self.create_subscription(
             Bool, "/free/north", self.callback_free_north, 10)
         self.sub_free_north_west = self.create_subscription(
@@ -128,8 +128,8 @@ class BehaviorsNode(Node):
             Bool, "/free/south_east", self.callback_free_south_east, 10)
         
         # Create publishers
-        self.pub_speed = self.create_publisher(Float64, '/speed', 1)
-        self.pub_angle = self.create_publisher(Float64, '/steering', 1)
+        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
+        self.pub_angle = self.create_publisher(Float64, '/bmw_steering', 1)
         self.pub_change_lane_finished = self.create_publisher(Bool, '/change_lane_finished', 1)
         self.pub_pass_finished = self.create_publisher(Bool, '/pass_finished', 1)
         

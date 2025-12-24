@@ -22,7 +22,7 @@ class LaneIdentificationNode(Node):
         # Subscribers
         self.create_subscription(
             Pose2D,
-            '/self_driving_pose',
+            '/bmw_pose',
             self.pose_callback,
             10)
 

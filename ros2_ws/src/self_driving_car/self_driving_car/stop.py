@@ -22,19 +22,19 @@ class StopNode(Node):
         # Create subscribers
         self.sub_success = self.create_subscription(
             Bool,
-            "/success",
+            "/bmw_success",
             self.callback_success,
             10
         )
         self.sub_goal_reached = self.create_subscription(
             Bool,
-            "/goal_reached",
+            "/bmw_goal_reached",
             self.callback_goal_reached,
             10
         )
         
         # Create publisher
-        self.pub_speed = self.create_publisher(Float64, '/speed', 1)
+        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
         
         # Create timer for main loop
         self.timer = self.create_timer(0.1, self.main_loop)  # 10Hz
@@ -78,13 +78,15 @@ class StopNode(Node):
             
             # Kill nodes using ROS2 commands
             nodes_to_kill = [
-                '/policy',
+                '/behavior_selection',
                 '/behaviors', 
-                '/current_lane',
-                '/lane_detector',
+                '/lane_identification',
+                '/lane_detector_canny_hough',
                 '/obstacle_detector',
                 '/success',
-                '/stop'
+                '/stop',
+                '/latent_collision_detector',
+                '/lane_tracking_control_P'
             ]
             
             # First stop motion for safety

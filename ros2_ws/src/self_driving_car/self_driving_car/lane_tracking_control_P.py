@@ -15,7 +15,7 @@ from std_msgs.msg import Float64MultiArray, Float64, Empty, Bool
 
 class LaneTrackingNode(Node):
     def __init__(self):
-        super().__init__('lane_tracking')
+        super().__init__('lane_tracking_control_P')
         
         # Initialize variables
         self.max_speed = 10
@@ -82,8 +82,8 @@ class LaneTrackingNode(Node):
         )
         
         # Create publishers
-        self.pub_speed = self.create_publisher(Float64, '/speed', 1)
-        self.pub_angle = self.create_publisher(Float64, '/steering', 1)
+        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
+        self.pub_steering = self.create_publisher(Float64, '/bmw_steering', 1)
         
         # Wait for initial lane detection messages
         print("Waiting for lane detection...")
@@ -164,7 +164,7 @@ class LaneTrackingNode(Node):
         
         steering_msg = Float64()
         steering_msg.data = steering
-        self.pub_angle.publish(steering_msg)
+        self.pub_steering.publish(steering_msg)
 
 def main():
     rclpy.init()

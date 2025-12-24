@@ -20,7 +20,7 @@ import ros2_numpy as ros_numpy
 
 class ObstacleDetectorNode(Node):
     def __init__(self):
-        super().__init__('free_detector')
+        super().__init__('obstacle_detector')
         
         # Initialize variables
         self.sim_secs = 0
@@ -32,7 +32,7 @@ class ObstacleDetectorNode(Node):
         # Create subscribers
         self.sub_point_cloud = self.create_subscription(
             PointCloud2, 
-            '/point_cloud', 
+            '/bmw_point_cloud', 
             self.callback_point_cloud, 
             10
         )
@@ -66,7 +66,17 @@ class ObstacleDetectorNode(Node):
             # Note: ros2_numpy might have slightly different API than ros_numpy
             # You may need to adjust this conversion based on your ros2_numpy version
             xyz = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
-
+            '''
+            # DEBUG: Log basic point cloud info
+            self.get_logger().info(f"Total points: {xyz.shape[0]}")
+            if xyz.shape[0] > 0:
+              self.get_logger().info(f"X range: [{xyz[:,0].min():.2f}, {xyz[:,0].max():.2f}]")
+              self.get_logger().info(f"Y range: [{xyz[:,1].min():.2f}, {xyz[:,1].max():.2f}]")
+              self.get_logger().info(f"Z range: [{xyz[:,2].min():.2f}, {xyz[:,2].max():.2f}]")
+            '''
+            # Filter points on floor and higher points
+            xyz = xyz[(xyz[:,2] > -1) & (xyz[:,2] < 0.3)]
+                        
             # Define regions and count points
             N_points  = xyz[(xyz[:,0] >  2.5) & (xyz[:,0] <  25) & (xyz[:,1] < 1.5) & (xyz[:,1] > -1.5)]
             NW_points = xyz[(xyz[:,0] >  5) & (xyz[:,0] <   25) & (xyz[:,1] < 4.0) & (xyz[:,1] >  1.2)]
@@ -78,22 +88,20 @@ class ObstacleDetectorNode(Node):
             SE_points  = xyz[(xyz[:,0] >  -25) & (xyz[:,0] < -5) & (xyz[:,1] > -4.0) & (xyz[:,1] <  -1.2)]               
             
             # Determine if regions are free based on point count thresholds
-            free_N  = N_points.shape[0] < 1000
+            free_N  = N_points.shape[0] < 20
             #print('free_N=', N_points.shape[0], flush = True)
-            free_NW = NW_points.shape[0] < 5000
-            #print('free_NW=', NW_points.shape[0], flush = True)            
-            free_W  = W_points.shape[0] < 5000
+            free_NW = NW_points.shape[0] < 50
+            #print('free_NW=', NW_points.shape[0], flush = True)
+            free_W  = W_points.shape[0] < 50
             #print('free_W=', W_points.shape[0], flush = True)
-            free_SW = SW_points.shape[0] < 5000
+            free_SW = SW_points.shape[0] < 50
             #print('free_SW=', SW_points.shape[0], flush = True)
-            
-            #print("NE_points.shape[0]: ", NE_points.shape[0], flush = True)  
-            free_NE  = NE_points.shape[0] < 5000
-            #print('free_NE=', NE_points.shape[0], flush = True)            
-            free_E  = E_points.shape[0] < 5000
-            #print('free_E=', E_points.shape[0], flush = True)            
-            free_SE  = SE_points.shape[0] < 5000   
-            #print('free_SE=', SE_points.shape[0], flush = True)
+            free_NE  = NE_points.shape[0] < 50
+            #print('free_NE=', NE_points.shape[0], flush = True) 
+            free_E  = E_points.shape[0] < 50  
+            #print('free_E=', E_points.shape[0], flush = True) 
+            free_SE  = SE_points.shape[0] < 50
+            #print('free_SE=', SE_points.shape[0], flush = True)   
             
             # Publish free space information
             self.publish_bool(self.pub_obs_N, free_N)
@@ -106,18 +114,12 @@ class ObstacleDetectorNode(Node):
 
             # Calculate obstacle distance in front of the car
             obs_points  = xyz[(xyz[:,0] >  2.5) & (xyz[:,0] < 100) & (xyz[:,1] < 1.0) & (xyz[:,1] > -1.0)]
-            if obs_points.shape[0] > 100:
+            if obs_points.shape[0] > 10:
                 distance = numpy.linalg.norm(numpy.mean(obs_points, axis=0))
                 dist_msg = Float64()
                 dist_msg.data = float(distance)
                 self.pub_obs_dist.publish(dist_msg)
-                
-                # Optional logging
-                # self.get_logger().info(f"Average distance north: {distance:.2f}")
-            
-            # Optional: log all region counts
-            # self.get_logger().info(f"N: {N_points.shape[0]}, NW: {NW_points.shape[0]}, W: {W_points.shape[0]}, SW: {SW_points.shape[0]}, NE: {NE_points.shape[0]}, E: {E_points.shape[0]}, SE: {SE_points.shape[0]}, time: {self.curr_time}")
-                
+                                
         except Exception as e:
             self.get_logger().error(f"Error processing point cloud: {str(e)}")
 

@@ -4,14 +4,14 @@ BMW X5 Webots controller (ROS2)
 
 Publishes:
 - /clock
-- /point_cloud
-- /camera/rgb/raw
-- /imu
-- /frontal_radar_scan
+- /bmw_point_cloud
+- /bmw_frontal_camera/rgb/raw
+- /bmw_accelerometer
+- /bmw_frontal_radar
 
 Subscribes:
-- /speed    (std_msgs/Float64)
-- /steering (std_msgs/Float64)
+- /bmw_speed (std_msgs/Float64)
+- /bmw_steering (std_msgs/Float64)
 
 NO TF BROADCASTING — all transforms handled by launch file.
 """
@@ -38,7 +38,7 @@ TIME_STEP = 10  # ms (match Webots world)
 
 FRAME_LIDAR  = "lidar_link"
 FRAME_CAMERA = "camera_link"
-FRAME_IMU    = "imu_link"
+FRAME_ACCELEROMETER = "accelerometer_link"  
 FRAME_RADAR  = "radar_link"
 
 # LiDAR corrections
@@ -79,23 +79,23 @@ class BMWX5Controller(Node):
         self.radar.enable(TIME_STEP)
 
         # -------- Publishers --------
-        self.pub_pc     = self.create_publisher(PointCloud2, '/point_cloud', 10)
-        self.pub_cam    = self.create_publisher(Image, '/camera/rgb/raw', 10)
-        self.pub_imu    = self.create_publisher(Imu, '/imu', 10)
-        self.pub_radar  = self.create_publisher(RadarScan, '/frontal_radar_scan', 10)
+        self.pub_pc     = self.create_publisher(PointCloud2, '/bmw_point_cloud', 10)
+        self.pub_cam    = self.create_publisher(Image, '/bmw_frontal_camera/rgb/raw', 10)
+        self.pub_accel  = self.create_publisher(Imu, '/bmw_accelerometer', 10)  # Keep Imu message type for compatibility
+        self.pub_radar  = self.create_publisher(RadarScan, '/bmw_frontal_radar', 10)
         self.pub_clock  = self.create_publisher(Clock, '/clock', 1)
 
         # -------- Subscribers --------
         self.sub_speed = self.create_subscription(
             Float64,
-            '/speed',
+            '/bmw_speed',
             self.cb_speed,
             10
         )
 
         self.sub_steering = self.create_subscription(
             Float64,
-            '/steering',
+            '/bmw_steering',
             self.cb_steering,
             10
         )
@@ -120,24 +120,23 @@ class BMWX5Controller(Node):
         self.msg_img.height = self.camera.getHeight()
         self.msg_img.step = self.msg_img.width * 4
 
-        self.msg_imu = Imu()
-        self.msg_imu.header.frame_id = FRAME_IMU
+        self.msg_accel = Imu()  # Using Imu message but only populating acceleration
+        self.msg_accel.header.frame_id = FRAME_ACCELEROMETER
 
         # -------- Timing --------
         t0 = self.driver.getTime()
         self.last_lidar  = t0
         self.last_camera = t0
-        self.last_imu    = t0
+        self.last_accel  = t0  # Changed from last_imu
         self.last_radar  = t0
 
         self.lidar_interval  = 0.1
         self.camera_interval = 0.1
-        self.imu_interval    = 0.02
+        self.accel_interval  = 0.02  # Changed from imu_interval
         self.radar_interval  = 0.01
 
         self.get_logger().info(
             "BMW X5 ROS2 controller initialized "
-            "(LiDAR + Camera + IMU + Radar + Speed/Steering)"
         )
 
     # -------- ROS time helper --------
@@ -172,15 +171,31 @@ class BMWX5Controller(Node):
             clk.clock = self.make_ros_time(sim_t)
             self.pub_clock.publish(clk)
 
-            # ---- IMU ----
-            if sim_t - self.last_imu >= self.imu_interval:
-                self.last_imu = sim_t
+            # ---- Accelerometer ----
+            if sim_t - self.last_accel >= self.accel_interval:
+                self.last_accel = sim_t
                 ax, ay, az = self.accel.getValues()
-                self.msg_imu.linear_acceleration.x = float(ax)
-                self.msg_imu.linear_acceleration.y = float(ay)
-                self.msg_imu.linear_acceleration.z = float(az)
-                self.msg_imu.header.stamp = self.make_ros_time(sim_t)
-                self.pub_imu.publish(self.msg_imu)
+                
+                # Populate only linear acceleration (no orientation/angular data)
+                self.msg_accel.linear_acceleration.x = float(ax)
+                self.msg_accel.linear_acceleration.y = float(ay)
+                self.msg_accel.linear_acceleration.z = float(az)
+                
+                # Clear orientation and angular velocity fields (they will be zeros)
+                self.msg_accel.orientation.x = 0.0
+                self.msg_accel.orientation.y = 0.0
+                self.msg_accel.orientation.z = 0.0
+                self.msg_accel.orientation.w = 1.0
+                self.msg_accel.angular_velocity.x = 0.0
+                self.msg_accel.angular_velocity.y = 0.0
+                self.msg_accel.angular_velocity.z = 0.0
+                
+                # Set covariance matrices
+                # Linear acceleration covariance (unknown uncertainty)
+                self.msg_accel.linear_acceleration_covariance[0] = -1.0
+                
+                self.msg_accel.header.stamp = self.make_ros_time(sim_t)
+                self.pub_accel.publish(self.msg_accel)
 
             # ---- LIDAR ----
             if sim_t - self.last_lidar >= self.lidar_interval:
@@ -250,4 +265,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
