@@ -22,19 +22,19 @@ class StopNode(Node):
         # Create subscribers
         self.sub_success = self.create_subscription(
             Bool,
-            "/bmw_success",
+            "/BMW/success",
             self.callback_success,
             10
         )
         self.sub_goal_reached = self.create_subscription(
             Bool,
-            "/bmw_goal_reached",
+            "/BMW/goal_reached",
             self.callback_goal_reached,
             10
         )
         
         # Create publisher
-        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
+        self.pub_speed = self.create_publisher(Float64, '/BMW/speed', 1)
         
         # Create timer for main loop
         self.timer = self.create_timer(0.1, self.main_loop)  # 10Hz

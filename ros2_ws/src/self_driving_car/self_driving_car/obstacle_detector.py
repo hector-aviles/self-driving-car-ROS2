@@ -32,7 +32,7 @@ class ObstacleDetectorNode(Node):
         # Create subscribers
         self.sub_point_cloud = self.create_subscription(
             PointCloud2, 
-            '/bmw_point_cloud', 
+            '/BMW/point_cloud', 
             self.callback_point_cloud, 
             10
         )
@@ -44,14 +44,14 @@ class ObstacleDetectorNode(Node):
         )
         
         # Create publishers
-        self.pub_obs_N = self.create_publisher(Bool, "/free/north", 1)
-        self.pub_obs_NW = self.create_publisher(Bool, "/free/north_west", 1)
-        self.pub_obs_W = self.create_publisher(Bool, "/free/west", 1)
-        self.pub_obs_SW = self.create_publisher(Bool, "/free/south_west", 1)
-        self.pub_obs_NE = self.create_publisher(Bool, "/free/north_east", 1)
-        self.pub_obs_E = self.create_publisher(Bool, "/free/east", 1)
-        self.pub_obs_SE = self.create_publisher(Bool, "/free/south_east", 1)
-        self.pub_obs_dist = self.create_publisher(Float64, "/obstacle/distance", 1)
+        self.pub_obs_N = self.create_publisher(Bool, "/BMW/free_N", 1)
+        self.pub_obs_NW = self.create_publisher(Bool, "/BMW/free_NW", 1)
+        self.pub_obs_W = self.create_publisher(Bool, "/BMW/free_W", 1)
+        self.pub_obs_SW = self.create_publisher(Bool, "/BMW/free_SW", 1)
+        self.pub_obs_NE = self.create_publisher(Bool, "/BMW/free_NE", 1)
+        self.pub_obs_E = self.create_publisher(Bool, "/BMW/free_E", 1)
+        self.pub_obs_SE = self.create_publisher(Bool, "/BMW/free_SE", 1)
+        self.pub_obs_dist = self.create_publisher(Float64, "/BMW/obstacle_distance", 1)
         
         self.get_logger().info("Obstacle detector node started")
 

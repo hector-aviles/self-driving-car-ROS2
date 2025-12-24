@@ -45,33 +45,33 @@ class SupervisorNode(Node):
         self.initialize_vehicle_positions()
         
         # ROS 2 Publishers
-        self.pub_bmw_pose = self.create_publisher(Pose2D, '/bmw_pose', 10)
+        self.pub_bmw_pose = self.create_publisher(Pose2D, '/BMW/pose', 10)
 
         self.pub_vehicles_pose = [
-            self.create_publisher(Pose2D, f"/vehicle_{i+1}_pose", 10)
+            self.create_publisher(Pose2D, f"/vehicle_{i+1}/pose", 10)
             for i in range(MAX_VEHICLES)
         ]            
         
         self.pub_vehicles_opposite_pose = [
-            self.create_publisher(Pose2D, f"/vehicle_opposite_{i+1}_pose", 10)
+            self.create_publisher(Pose2D, f"/vehicle_opposite_{i+1}/pose", 10)
             for i in range(MAX_VEHICLES)
         ]                    
         
         self.pub_vehicles_transverse_pose = [
-            self.create_publisher(Pose2D, f"/vehicle_transverse_{i+1}_pose", 10)
+            self.create_publisher(Pose2D, f"/vehicle_transverse_{i+1}/pose", 10)
             for i in range(MAX_VEHICLES)
         ]        
         
         # ROS 2 Subscribers
         self.sub_speed_left = self.create_subscription(
             Float64, 
-            '/speed_vehicles_left_lane', 
+            '/vehicles_left_lane/speed', 
             self.callback_speed_vehicles_left_lane, 
             10
         )
         self.sub_speed_right = self.create_subscription(
             Float64, 
-            '/speed_vehicles_right_lane', 
+            '/vehicles_right_lane/speed', 
             self.callback_speed_vehicles_right_lane, 
             10
         )
@@ -83,7 +83,7 @@ class SupervisorNode(Node):
         self.start_signal_received = False
         self.sub_start = self.create_subscription(
             Empty,
-            '/policy_started',
+            '/BMW/policy/started',
             self.callback_start_signal,
             10
         )

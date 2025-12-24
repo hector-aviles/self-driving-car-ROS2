@@ -27,7 +27,7 @@ class GoalReachedNode(Node):
         # Create subscriber
         self.sub_curr_pose = self.create_subscription(
             Pose2D, 
-            "/bmw_pose", 
+            "/BMW/pose", 
             self.callback_curr_pose, 
             10
         )

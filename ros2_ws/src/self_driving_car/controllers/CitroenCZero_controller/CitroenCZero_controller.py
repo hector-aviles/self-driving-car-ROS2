@@ -77,13 +77,13 @@ class CitroenCZero_Controller(Node):
             10
         )
 
-        self.get_logger().info("supervisor_CitroenCZero waiting for /policy_started...")
+        self.get_logger().info("supervisor_CitroenCZero waiting for /BMW/policy/started...")
 
         # Wait for start signal through temporary subscription
         self.start_signal_received = False
         self.create_subscription(
             Empty,
-            "/policy_started",
+            "/BMW/policy/started",
             self.callback_start_signal,
             10
         )

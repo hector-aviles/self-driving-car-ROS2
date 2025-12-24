@@ -27,7 +27,7 @@ class LaneDetectorNode(Node):
         # Create subscriber
         self.sub_rgb_image = self.create_subscription(
             Image, 
-            '/bmw_frontal_camera/rgb/raw', 
+            '/BMW/frontal_camera/rgb/raw', 
             self.callback_rgb_image, 
             10
         )
@@ -35,19 +35,19 @@ class LaneDetectorNode(Node):
         # Create publishers
         self.pub_left_lane = self.create_publisher(
             Float64MultiArray, 
-            "/demo/left_lane", 
+            "/BMW/demo/left_lane", 
             1
         )
         self.pub_right_lane = self.create_publisher(
             Float64MultiArray, 
-            "/demo/right_lane", 
+            "/BMW/demo/right_lane", 
             1
         )
         
         # Optional: Wait for start signal (commented out as in original)
         # self.get_logger().info("LaneDetector.->Waiting for start signal")
         # try:
-        #     self.wait_for_message("/policy_started", Empty, timeout=50.0)
+        #     self.wait_for_message("/BMW/policy/started", Empty, timeout=50.0)
         #     self.get_logger().info("LaneDetector.->Start signal received")
         # except:
         #     self.get_logger().warn("LaneDetector.->Timeout waiting for start signal")

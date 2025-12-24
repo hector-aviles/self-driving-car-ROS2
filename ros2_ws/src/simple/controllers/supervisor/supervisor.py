@@ -84,13 +84,13 @@ class SupervisorNode(Node):
         # ROS 2 Subscribers
         self.sub_speed_left = self.create_subscription(
             Float64, 
-            '/speed_vehicles_left_lane', 
+            '/vehicles_left_lane/speed', 
             self.callback_speed_vehicles_left_lane, 
             10
         )
         self.sub_speed_right = self.create_subscription(
             Float64, 
-            '/speed_vehicles_right_lane', 
+            '/vehicles_right_lane/speed', 
             self.callback_speed_vehicles_right_lane, 
             10
         )
@@ -102,7 +102,7 @@ class SupervisorNode(Node):
         self.start_signal_received = False
         self.sub_start = self.create_subscription(
             Empty,
-            '/policy_started',
+            '/BMW/policy/started',
             self.callback_start_signal,
             10
         )

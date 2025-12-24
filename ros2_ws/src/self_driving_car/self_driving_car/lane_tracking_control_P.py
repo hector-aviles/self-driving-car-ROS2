@@ -52,38 +52,38 @@ class LaneTrackingNode(Node):
         # Create subscribers
         self.sub_left_lane = self.create_subscription(
             Float64MultiArray, 
-            "/demo/left_lane", 
+            "/BMW/demo/left_lane", 
             self.callback_left_lane, 
             10
         )
         self.sub_right_lane = self.create_subscription(
             Float64MultiArray, 
-            "/demo/right_lane", 
+            "/BMW/demo/right_lane", 
             self.callback_right_lane, 
             10
         )
         self.sub_enable_cruise = self.create_subscription(
             Bool, 
-            "/cruise/enable", 
+            "/BMW/cruise/enable", 
             self.callback_enable_cruise, 
             10
         )
         self.sub_enable_follow = self.create_subscription(
             Bool, 
-            "/follow/enable", 
+            "/BMW/follow/enable", 
             self.callback_enable_follow, 
             10
         )
         self.sub_dist_to_obstacle = self.create_subscription(
             Float64, 
-            "/obstacle/distance", 
+            "/BMW/obstacle_distance", 
             self.callback_dist_to_obstacle, 
             10
         )
         
         # Create publishers
-        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
-        self.pub_steering = self.create_publisher(Float64, '/bmw_steering', 1)
+        self.pub_speed = self.create_publisher(Float64, '/BMW/speed', 1)
+        self.pub_steering = self.create_publisher(Float64, '/BMW/steering', 1)
         
         # Wait for initial lane detection messages
         print("Waiting for lane detection...")

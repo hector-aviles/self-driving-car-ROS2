@@ -22,12 +22,12 @@ class LaneIdentificationNode(Node):
         # Subscribers
         self.create_subscription(
             Pose2D,
-            '/bmw_pose',
+            '/BMW/pose',
             self.pose_callback,
             10)
 
         # Publishers
-        self.pub_right_lane = self.create_publisher(Bool, '/current_lane', 10)
+        self.pub_right_lane = self.create_publisher(Bool, '/BMW/current_lane', 10)
 
         self.get_logger().info('Lane Identification Node has been started.')
 

@@ -184,25 +184,25 @@ class TestAPNode(Node):
         print("INITIALIZING POLICY...", flush=True)
         
         # Create subscribers
-        self.create_subscription(Bool, "/free/north", self.callback_free_N, 10)
-        self.create_subscription(Bool, "/free/north_west", self.callback_free_NW, 10)
-        self.create_subscription(Bool, "/free/west", self.callback_free_W, 10)
-        self.create_subscription(Bool, "/free/south_west", self.callback_free_SW, 10)
-        self.create_subscription(Bool, "/free/north_east", self.callback_free_NE, 10)
-        self.create_subscription(Bool, "/free/east", self.callback_free_E, 10)
-        self.create_subscription(Bool, "/free/south_east", self.callback_free_SE, 10)
-        self.create_subscription(Bool, "/current_lane", self.callback_curr_lane, 10)
-        self.create_subscription(Bool, "/change_lane_finished", self.callback_change_lane_finished, 10)
+        self.create_subscription(Bool, "/BMW/free_N", self.callback_free_N, 10)
+        self.create_subscription(Bool, "/BMW/free_NW", self.callback_free_NW, 10)
+        self.create_subscription(Bool, "/BMW/free_W", self.callback_free_W, 10)
+        self.create_subscription(Bool, "/BMW/free_SW", self.callback_free_SW, 10)
+        self.create_subscription(Bool, "/BMW/free_NE", self.callback_free_NE, 10)
+        self.create_subscription(Bool, "/BMW/free_E", self.callback_free_E, 10)
+        self.create_subscription(Bool, "/BMW/free_SE", self.callback_free_SE, 10)
+        self.create_subscription(Bool, "/BMW/current_lane", self.callback_curr_lane, 10)
+        self.create_subscription(Bool, "/BMW/change_lane/finished", self.callback_change_lane_finished, 10)
         
         # Create publishers
-        self.pub_policy_started = self.create_publisher(Empty, "/policy_started", 1)
-        self.pub_cruise = self.create_publisher(Bool, "/cruise/enable", 1)
-        self.pub_keep_distance = self.create_publisher(Bool, "/follow/enable", 1)
-        self.pub_change_lane_on_left = self.create_publisher(Bool, "/start_change_lane_on_left", 1)
-        self.pub_change_lane_on_right = self.create_publisher(Bool, "/start_change_lane_on_right", 1)
+        self.pub_policy_started = self.create_publisher(Empty, "/BMW/policy/started", 1)
+        self.pub_cruise = self.create_publisher(Bool, "/BMW/cruise/enable", 1)
+        self.pub_keep_distance = self.create_publisher(Bool, "/BMW/follow/enable", 1)
+        self.pub_change_lane_on_left = self.create_publisher(Bool, "/BMW/change_lane_on_left/started", 1)
+        self.pub_change_lane_on_right = self.create_publisher(Bool, "/BMW/change_lane_on_right/started", 1)
         self.pub_action = self.create_publisher(String, "/bmw_action", 1)
-        self.pub_speed_vehicles_left_lane = self.create_publisher(Float64, "/speed_vehicles_left_lane", 1)
-        self.pub_speed_vehicles_right_lane = self.create_publisher(Float64, "/speed_vehicles_right_lane", 1)
+        self.pub_speed_vehicles_left_lane = self.create_publisher(Float64, "/vehicles_left_lane/speed", 1)
+        self.pub_speed_vehicles_right_lane = self.create_publisher(Float64, "/vehicles_right_lane/speed", 1)
         
         # Create ActionPolicy model
         self.get_logger().info("Creating ActionPolicy classifier...")
@@ -355,7 +355,7 @@ class TestAPNode(Node):
             def lane_finished_callback(msg):
                 if msg.data:
                     future.set_result(True)
-            sub = self.create_subscription(Bool, "/change_lane_finished", lane_finished_callback, 10)
+            sub = self.create_subscription(Bool, "/BMW/change_lane/finished", lane_finished_callback, 10)
             # This is a simplified approach - in practice you might want a more robust solution
             self.get_logger().info("Change lane finished")           
         elif self.action == "change_to_right":

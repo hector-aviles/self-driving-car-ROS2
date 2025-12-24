@@ -24,14 +24,14 @@ class SuccessNode(Node):
         # Create subscriber
         self.sub_accelerometer = self.create_subscription(
             Imu,
-            '/bmw_accelerometer',
+            '/BMW/accelerometer',
             self.callback_accelerometer,
             10
         )
         
         # Create publishers
-        self.pub_success = self.create_publisher(Bool, "/bmw_success", 1)
-        self.pub_accel_diff = self.create_publisher(Float64, "/bmw_accelerometer_diff", 1)
+        self.pub_success = self.create_publisher(Bool, "/BMW/success", 1)
+        self.pub_accel_diff = self.create_publisher(Float64, "/BMW/accelerometer_diff", 1)
         
         self.get_logger().info("Success node initialized")
 

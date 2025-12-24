@@ -4,14 +4,14 @@ BMW X5 Webots controller (ROS2)
 
 Publishes:
 - /clock
-- /bmw_point_cloud
-- /bmw_frontal_camera/rgb/raw
-- /bmw_accelerometer
-- /bmw_frontal_radar
+- /BMW/point_cloud
+- /BMW/frontal_camera/rgb/raw
+- /BMW/accelerometer
+- /BMW/frontal_radar
 
 Subscribes:
-- /bmw_speed (std_msgs/Float64)
-- /bmw_steering (std_msgs/Float64)
+- /BMW/speed (std_msgs/Float64)
+- /BMW/steering (std_msgs/Float64)
 
 NO TF BROADCASTING — all transforms handled by launch file.
 """
@@ -79,23 +79,23 @@ class BMWX5Controller(Node):
         self.radar.enable(TIME_STEP)
 
         # -------- Publishers --------
-        self.pub_pc     = self.create_publisher(PointCloud2, '/bmw_point_cloud', 10)
-        self.pub_cam    = self.create_publisher(Image, '/bmw_frontal_camera/rgb/raw', 10)
-        self.pub_accel  = self.create_publisher(Imu, '/bmw_accelerometer', 10)  # Keep Imu message type for compatibility
-        self.pub_radar  = self.create_publisher(RadarScan, '/bmw_frontal_radar', 10)
+        self.pub_pc     = self.create_publisher(PointCloud2, '/BMW/point_cloud', 10)
+        self.pub_cam    = self.create_publisher(Image, '/BMW/frontal_camera/rgb/raw', 10)
+        self.pub_accel  = self.create_publisher(Imu, '/BMW/accelerometer', 10)  # Keep Imu message type for compatibility
+        self.pub_radar  = self.create_publisher(RadarScan, '/BMW/frontal_radar', 10)
         self.pub_clock  = self.create_publisher(Clock, '/clock', 1)
 
         # -------- Subscribers --------
         self.sub_speed = self.create_subscription(
             Float64,
-            '/bmw_speed',
+            '/BMW/speed',
             self.cb_speed,
             10
         )
 
         self.sub_steering = self.create_subscription(
             Float64,
-            '/bmw_steering',
+            '/BMW/steering',
             self.cb_steering,
             10
         )

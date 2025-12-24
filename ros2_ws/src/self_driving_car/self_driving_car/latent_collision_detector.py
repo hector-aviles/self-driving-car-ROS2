@@ -68,38 +68,38 @@ class LatentCollisionDetector(Node):
         
         # Create subscribers
         self.curr_lane_sub = self.create_subscription(
-            Bool, '/current_lane', self.callback_curr_lane, 10)
+            Bool, '/BMW/current_lane', self.callback_curr_lane, 10)
         self.speed_sub = self.create_subscription(
-            Float64, '/bmw_speed', self.callback_sdc_vel, 10)
+            Float64, '/BMW/speed', self.callback_sdc_vel, 10)
         self.free_north_sub = self.create_subscription(
-            Bool, '/free/north', self.callback_free_N, 10)
+            Bool, '/BMW/free_N', self.callback_free_N, 10)
         self.free_north_west_sub = self.create_subscription(
-            Bool, '/free/north_west', self.callback_free_NW, 10)
+            Bool, '/BMW/free_NW', self.callback_free_NW, 10)
         self.free_west_sub = self.create_subscription(
-            Bool, '/free/west', self.callback_free_W, 10)
+            Bool, '/BMW/free_W', self.callback_free_W, 10)
         self.free_north_east_sub = self.create_subscription(
-            Bool, '/free/north_east', self.callback_free_NE, 10)
+            Bool, '/BMW/free_NE', self.callback_free_NE, 10)
         self.free_east_sub = self.create_subscription(
-            Bool, '/free/east', self.callback_free_E, 10)
+            Bool, '/BMW/free_E', self.callback_free_E, 10)
         self.free_south_east_sub = self.create_subscription(
-            Bool, '/free/south_east', self.callback_free_SE, 10)
+            Bool, '/BMW/free_SE', self.callback_free_SE, 10)
         self.free_south_west_sub = self.create_subscription(
-            Bool, '/free/south_west', self.callback_free_SW, 10)
+            Bool, '/BMW/free_SW', self.callback_free_SW, 10)
         self.action_sub = self.create_subscription(
-            String, '/action', self.callback_action, 10)
+            String, '/BMW/action', self.callback_action, 10)
         self.radar_sub = self.create_subscription(
-            RadarScan, '/bmw_frontal_radar', self.callback_radar, 10)
+            RadarScan, '/BMW/frontal_radar', self.callback_radar, 10)
         
         # Create publishers
         self.pub_latent_collision = self.create_publisher(
-            Bool, '/bmw_latent_collision', 10)
+            Bool, '/BMW/latent_collision', 10)
         self.pub_type_latent_collision = self.create_publisher(
-            Float64, '/bmw_type_latent_collision', 10)
+            Float64, '/BMW/type_latent_collision', 10)
         
         # Wait for policy node to start
         self.policy_started = False
         self.policy_sub = self.create_subscription(
-            Empty, '/policy_started', self.callback_policy_started, 10)
+            Empty, '/BMW/policy/started', self.callback_policy_started, 10)
         
         # Create timer for main processing loop
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz

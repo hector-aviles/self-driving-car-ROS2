@@ -92,46 +92,46 @@ class BehaviorsNode(Node):
         
         # Create subscribers
         self.sub_left_lane = self.create_subscription(
-            Float64MultiArray, "/demo/left_lane", self.callback_left_lane, 10)
+            Float64MultiArray, "/BMW/demo/left_lane", self.callback_left_lane, 10)
         
         self.sub_right_lane = self.create_subscription(
-            Float64MultiArray, "/demo/right_lane", self.callback_right_lane, 10)
+            Float64MultiArray, "/BMW/demo/right_lane", self.callback_right_lane, 10)
         self.sub_enable_cruise = self.create_subscription(
-            Bool, "/cruise/enable", self.callback_enable_cruise, 10)
+            Bool, "/BMW/cruise/enable", self.callback_enable_cruise, 10)
         self.sub_enable_follow = self.create_subscription(
-            Bool, "/follow/enable", self.callback_enable_follow, 10)
+            Bool, "/BMW/follow/enable", self.callback_enable_follow, 10)
         self.sub_start_change_left = self.create_subscription(
-            Bool, "/start_change_lane_on_left", self.callback_start_change_lane_on_left, 10)
+            Bool, "/BMW/change_lane_on_left/started", self.callback_start_change_lane_on_left, 10)
         self.sub_start_change_right = self.create_subscription(
-            Bool, "/start_change_lane_on_right", self.callback_start_change_lane_on_right, 10)
+            Bool, "/BMW/change_lane_on_right/started", self.callback_start_change_lane_on_right, 10)
         self.sub_start_pass_left = self.create_subscription(
-            Bool, "/start_pass_on_left", self.callback_start_pass_on_left, 10)
+            Bool, "/BMW/pass_on_left/started", self.callback_start_pass_on_left, 10)
         self.sub_start_pass_right = self.create_subscription(
-            Bool, "/start_pass_on_right", self.callback_start_pass_on_right, 10)
+            Bool, "/BMW/pass_on_right/started", self.callback_start_pass_on_right, 10)
         self.sub_dist_to_obstacle = self.create_subscription(
-            Float64, "/obstacle/distance", self.callback_dist_to_obstacle, 10)
+            Float64, "/BMW/obstacle_distance", self.callback_dist_to_obstacle, 10)
         self.sub_current_pose = self.create_subscription(
-            Pose2D, "/bmw_pose", self.callback_current_pose, 10)
+            Pose2D, "/BMW/pose", self.callback_current_pose, 10)
         self.sub_free_north = self.create_subscription(
-            Bool, "/free/north", self.callback_free_north, 10)
+            Bool, "/BMW/free_N", self.callback_free_north, 10)
         self.sub_free_north_west = self.create_subscription(
-            Bool, "/free/north_west", self.callback_free_north_west, 10)
+            Bool, "/BMW/free_NW", self.callback_free_north_west, 10)
         self.sub_free_west = self.create_subscription(
-            Bool, "/free/west", self.callback_free_west, 10)
+            Bool, "/BMW/free_W", self.callback_free_west, 10)
         self.sub_free_south_west = self.create_subscription(
-            Bool, "/free/south_west", self.callback_free_south_west, 10)
+            Bool, "/BMW/free_SW", self.callback_free_south_west, 10)
         self.sub_free_north_east = self.create_subscription(
-            Bool, "/free/north_east", self.callback_free_north_east, 10)
+            Bool, "/BMW/free_NE", self.callback_free_north_east, 10)
         self.sub_free_east = self.create_subscription(
-            Bool, "/free/east", self.callback_free_east, 10)
+            Bool, "/BMW/free_E", self.callback_free_east, 10)
         self.sub_free_south_east = self.create_subscription(
-            Bool, "/free/south_east", self.callback_free_south_east, 10)
+            Bool, "/BMW/free_SE", self.callback_free_south_east, 10)
         
         # Create publishers
-        self.pub_speed = self.create_publisher(Float64, '/bmw_speed', 1)
-        self.pub_angle = self.create_publisher(Float64, '/bmw_steering', 1)
-        self.pub_change_lane_finished = self.create_publisher(Bool, '/change_lane_finished', 1)
-        self.pub_pass_finished = self.create_publisher(Bool, '/pass_finished', 1)
+        self.pub_speed = self.create_publisher(Float64, '/BMW/speed', 1)
+        self.pub_angle = self.create_publisher(Float64, '/BMW/steering', 1)
+        self.pub_change_lane_finished = self.create_publisher(Bool, '/BMW/change_lane/finished', 1)
+        self.pub_pass_finished = self.create_publisher(Bool, '/BMW/pass/finished', 1)
         
         # Create timer for main loop
         self.timer = self.create_timer(0.1, self.main_loop)  # 10Hz
