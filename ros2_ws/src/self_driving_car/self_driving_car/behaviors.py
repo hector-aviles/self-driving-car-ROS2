@@ -122,7 +122,6 @@ class BehaviorsNode(Node):
         self.pub_speed = self.create_publisher(Float64, '/BMW/speed', 1)
         self.pub_angle = self.create_publisher(Float64, '/BMW/steering', 1)
         self.pub_change_lane_finished = self.create_publisher(Bool, '/BMW/change_lane/finished', 1)
-        self.pub_pass_finished = self.create_publisher(Bool, '/BMW/pass/finished', 1)
         
         # Create timer for main loop
         self.timer = self.create_timer(0.1, self.main_loop)  # 10Hz

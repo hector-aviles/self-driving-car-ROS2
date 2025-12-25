@@ -41,13 +41,6 @@ FRAME_CAMERA = "camera_link"
 FRAME_ACCELEROMETER = "accelerometer_link"  
 FRAME_RADAR  = "radar_link"
 
-# LiDAR corrections
-LIDAR_YAW_OFFSET   = -math.radians(12.0)
-LIDAR_PITCH_OFFSET = -math.radians(15.0)
-
-COS_YAW = math.cos(LIDAR_YAW_OFFSET)
-SIN_YAW = math.sin(LIDAR_YAW_OFFSET)
-
 
 # ---------------- Controller ----------------
 
@@ -136,7 +129,7 @@ class BMWX5Controller(Node):
         self.radar_interval  = 0.01
 
         self.get_logger().info(
-            "BMW X5 ROS2 controller initialized "
+            "BMW X5 ROS2 controller initialized"
         )
 
     # -------- ROS time helper --------
@@ -148,14 +141,14 @@ class BMWX5Controller(Node):
 
     # -------- Callbacks (ROS1 parity) --------
     def cb_speed(self, msg: Float64):
-        self.get_logger().info(f"Speed to {msg.data}")
+        #self.get_logger().info(f"Speed to {msg.data}")
         try:
             self.driver.setCruisingSpeed(float(msg.data))
         except Exception as e:
             self.get_logger().warn(f"Speed command failed: {e}")
 
     def cb_steering(self, msg: Float64):
-        self.get_logger().info(f"Steering to {msg.data}")    
+        #self.get_logger().info(f"Steering to {msg.data}")    
         try:
             # Same sign convention as ROS1
             self.driver.setSteeringAngle(-float(msg.data))

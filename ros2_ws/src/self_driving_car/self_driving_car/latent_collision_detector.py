@@ -85,10 +85,10 @@ class LatentCollisionDetector(Node):
         self.create_subscription(Bool, "/BMW/free_SE", self.cb("free_SE"), 10)
         self.create_subscription(Bool, "/BMW/free_SW", self.cb("free_SW"), 10)
 
-        self.create_subscription(String, "/bmw_action",
+        self.create_subscription(String, "/BMW/action",
                                  self.cb("action"), 10)
 
-        self.create_subscription(RadarScan, "/BMW/frontal_radar_scan",
+        self.create_subscription(RadarScan, "/BMW/frontal_radar",
                                  self.cb_radar, 10)
 
         self.create_subscription(
@@ -103,7 +103,7 @@ class LatentCollisionDetector(Node):
             Bool, "/BMW/latent_collision", 1)
 
         self.pub_type_latent_collision = self.create_publisher(
-            Float64, "/BMW/type_latent_collision", 1)
+            Float64, "/BMW/latent_collision/type", 1)
 
         # -------------------------------------------------
         # Timer (10 Hz)

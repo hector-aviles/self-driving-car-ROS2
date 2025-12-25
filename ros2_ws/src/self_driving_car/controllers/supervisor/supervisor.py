@@ -34,7 +34,7 @@ class SupervisorNode(Node):
             for i in range(MAX_VEHICLES)
         ]
 
-        # Vehicles: transverse (kept, but unchanged)
+        # Vehicles: transverse
         self.vehicles_transverse = [
             robot.getFromDef(f'vehicle_transverse_{i+1}')
             for i in range(MAX_VEHICLES)
@@ -87,15 +87,12 @@ class SupervisorNode(Node):
         self.get_logger().info('Supervisor Node Started')
         self.get_logger().info('Waiting for start signal...')
 
-        # Main loop
-        self.timer = self.create_timer(TIME_STEP / 1000.0, self.control_loop)
-
     # -----------------------------------------------------
 
     def initialize_vehicle_positions(self):
         self.get_logger().info('Initializing vehicle coordinates...')
 
-        for i, vehicle in enumerate(self.vehicles):
+        for vehicle in self.vehicles:
             if vehicle:
                 field = vehicle.getField("translation")
                 pos = field.getSFVec3f()
@@ -103,7 +100,7 @@ class SupervisorNode(Node):
                 field.setSFVec3f(pos)
                 vehicle.resetPhysics()
 
-        for i, vehicle in enumerate(self.vehicles_opposite):
+        for vehicle in self.vehicles_opposite:
             if vehicle:
                 field = vehicle.getField("translation")
                 pos = field.getSFVec3f()
@@ -111,7 +108,7 @@ class SupervisorNode(Node):
                 field.setSFVec3f(pos)
                 vehicle.resetPhysics()
 
-        for i, vehicle in enumerate(self.vehicles_transverse):
+        for vehicle in self.vehicles_transverse:
             if vehicle:
                 field = vehicle.getField("translation")
                 pos = field.getSFVec3f()
@@ -123,11 +120,9 @@ class SupervisorNode(Node):
 
     def callback_speed_vehicles_left_lane(self, msg):
         self.speed_vehicles_left_lane = msg.data
-        #self.get_logger().info(f'Left lane speed = {msg.data:.2f}')
 
     def callback_speed_vehicles_right_lane(self, msg):
         self.speed_vehicles_right_lane = msg.data
-        #self.get_logger().info(f'Right lane speed = {msg.data:.2f}')
 
     def callback_start_signal(self, msg):
         if not self.start_signal_received:
@@ -138,11 +133,7 @@ class SupervisorNode(Node):
 
     # -----------------------------------------------------
 
-    def control_loop(self):
-        if robot.step(TIME_STEP) == -1:
-            self.get_logger().info('Simulation ended')
-            return
-
+    def step(self):
         if not self.start_signal_received:
             return
 
@@ -161,9 +152,9 @@ class SupervisorNode(Node):
             )
 
             vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
-
-            msg = Pose2D(x=pos[0], y=pos[1], theta=0.0)
-            self.pub_vehicles_pose[i].publish(msg)
+            self.pub_vehicles_pose[i].publish(
+                Pose2D(x=pos[0], y=pos[1], theta=0.0)
+            )
 
         # Opposite-direction vehicles
         for i, vehicle in enumerate(self.vehicles_opposite):
@@ -180,9 +171,9 @@ class SupervisorNode(Node):
             )
 
             vehicle.setVelocity([-speed, 0, 0, 0, 0, 0])
-
-            msg = Pose2D(x=pos[0], y=pos[1], theta=0.0)
-            self.pub_vehicles_opposite_pose[i].publish(msg)
+            self.pub_vehicles_opposite_pose[i].publish(
+                Pose2D(x=pos[0], y=pos[1], theta=0.0)
+            )
 
         self.publish_bmw_pose()
         self.publish_citroenczero_pose()
@@ -190,32 +181,41 @@ class SupervisorNode(Node):
     # -----------------------------------------------------
 
     def publish_bmw_pose(self):
-        if self.bmw:
-            pos = self.bmw.getPosition()
-            orient = self.bmw.getOrientation()
-            theta = math.atan2(orient[1], orient[0])
+        if not self.bmw:
+            return
 
-            self.pub_bmw_pose.publish(
-                Pose2D(x=pos[0], y=pos[1], theta=theta)
-            )
+        pos = self.bmw.getPosition()
+        orient = self.bmw.getOrientation()
+
+        # Webots rotation matrix → yaw
+        theta = math.atan2(orient[3], orient[0])
+
+        self.pub_bmw_pose.publish(
+            Pose2D(x=pos[0], y=pos[1], theta=theta)
+        )
 
     def publish_citroenczero_pose(self):
-        if self.citroenczero:
-            pos = self.citroenczero.getPosition()
-            orient = self.citroenczero.getOrientation()
-            theta = math.atan2(orient[1], orient[0])
+        if not self.citroenczero:
+            return
 
-            self.pub_citroenczero_pose.publish(
-                Pose2D(x=pos[0], y=pos[1], theta=theta)
-            )
+        pos = self.citroenczero.getPosition()
+        orient = self.citroenczero.getOrientation()
+
+        theta = math.atan2(orient[3], orient[0])
+
+        self.pub_citroenczero_pose.publish(
+            Pose2D(x=pos[0], y=pos[1], theta=theta)
+        )
 
 
 def main(args=None):
     rclpy.init(args=args)
+    node = SupervisorNode()
 
     try:
-        node = SupervisorNode()
-        rclpy.spin(node)
+        while robot.step(TIME_STEP) != -1:
+            rclpy.spin_once(node, timeout_sec=0.0)
+            node.step()
     except KeyboardInterrupt:
         pass
     finally:

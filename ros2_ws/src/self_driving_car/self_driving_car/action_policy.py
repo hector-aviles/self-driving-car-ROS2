@@ -185,6 +185,9 @@ class ActionPolicyNode(Node):
         self.free_SE = True
         self.curr_lane = True
         self.change_lane_finished = False
+         
+        self.executing_lane_change = False
+        self.pending_action = None        
         
         self.vel_vehicles_left_lane = int(speed_left)
         self.vel_vehicles_right_lane = int(speed_right)
@@ -201,15 +204,15 @@ class ActionPolicyNode(Node):
         self.create_subscription(Bool, "/BMW/free_E", self.callback_free_E, 10)
         self.create_subscription(Bool, "/BMW/free_SE", self.callback_free_SE, 10)
         self.create_subscription(Bool, "/BMW/current_lane", self.callback_curr_lane, 10)
-        self.create_subscription(Bool, "/BMW/change_lane/finished", self.callback_change_lane_finished, 10)
-        
+        self.create_subscription(Bool, "/BMW/change_lane/finished",     self.callback_change_lane_finished, 10)
+
         # Create publishers
         self.pub_policy_started = self.create_publisher(Empty, "/BMW/policy/started", 1)
         self.pub_cruise = self.create_publisher(Bool, "/BMW/cruise/enable", qos_latched)
         self.pub_keep_distance = self.create_publisher(Bool, "/BMW/follow/enable", qos_latched)
         self.pub_change_lane_on_left = self.create_publisher(Bool, "/BMW/change_lane_on_left/started", qos_latched)
         self.pub_change_lane_on_right = self.create_publisher(Bool, "/BMW/change_lane_on_right/started", qos_latched)
-        self.pub_action = self.create_publisher(String, "/bmw_action", qos_latched)
+        self.pub_action = self.create_publisher(String, "/BMW/action", qos_latched)
         self.pub_speed_vehicles_left_lane = self.create_publisher(Float64, "/vehicles_left_lane/speed", 1)
         self.pub_speed_vehicles_right_lane = self.create_publisher(Float64, "/vehicles_right_lane/speed", 1)
         self.pub_speed_citroen_czero = self.create_publisher(Float64, "/CitroenCZero/speed", 1)
@@ -296,42 +299,16 @@ class ActionPolicyNode(Node):
         msg.data = value
         publisher.publish(msg)
 
-    def wait_for_change_lane_finished(self, timeout_sec=10.0):
-        """
-        ROS2 equivalent of rospy.wait_for_message with timeout.
-        Returns True if finished signal received, False on timeout.
-        """
-        self.change_lane_finished = False
-    
-        def callback(msg):
-            self.change_lane_finished = msg.data
-    
-        sub = self.create_subscription(
-            Bool,
-            "/BMW/change_lane/finished",
-            callback,
-            10
-        )
-    
-        start_time = self.get_clock().now()
-    
-        while rclpy.ok():
-            rclpy.spin_once(self, timeout_sec=0.1)
-    
-            if self.change_lane_finished:
-                self.destroy_subscription(sub)
-                return True
-    
-            elapsed = (self.get_clock().now() - start_time).nanoseconds * 1e-9
-            if elapsed > timeout_sec:
-                self.get_logger().warn("Timeout waiting for change_lane_finished")
-                self.destroy_subscription(sub)
-                return False
-
-
     def main_loop(self):
         # Publish policy started
         self.pub_policy_started.publish(Empty())
+        
+        if self.executing_lane_change:
+           if self.change_lane_finished:
+              self.get_logger().info("Lane change finished")
+              self.executing_lane_change = False
+              self.change_lane_finished = False
+           return        
         
         # Publish speed for vehicles in left lane
         speed_left_msg = Float64()
@@ -394,20 +371,22 @@ class ActionPolicyNode(Node):
             self.cruise()                
         elif self.action == "keep":
             self.pub_action.publish(String(data="keep"))
-            self.keep_distance()        
+            self.keep_distance() 
         elif self.action == "change_to_left":
-            self.pub_action.publish(String(data="change_to_left"))
-            self.change_lane_on_left()
-        
-            self.get_logger().info("Waiting for change lane to finish...")
-        
-            finished = self.wait_for_change_lane_finished(timeout_sec=500.0)
-        
-            if finished:
-                self.get_logger().info("Change lane to LEFT finished")
-            else:
-                self.get_logger().warn("Change lane to LEFT timed out")
-                           
+            if not self.executing_lane_change:
+               self.get_logger().info("Starting change lane LEFT")
+               self.executing_lane_change = True
+               self.change_lane_finished = False
+               self.pub_action.publish(String(data="change_to_left"))
+               self.change_lane_on_left()            
+        elif self.action == "change_to_right":
+            if not self.executing_lane_change:
+               self.get_logger().info("Starting change lane RIGHT")
+               self.executing_lane_change = True
+               self.change_lane_finished = False
+               self.pub_action.publish(String(data="change_to_right"))
+               self.change_lane_on_right()                           
+                                              
         elif self.action == "change_to_right":
             self.pub_action.publish(String(data="change_to_right"))
             self.change_lane_on_right()
