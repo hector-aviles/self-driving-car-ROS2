@@ -13,6 +13,13 @@ import math
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray, Float64, Empty, Bool
 from geometry_msgs.msg import Pose2D
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
+
+qos_latched = QoSProfile(
+    depth=1,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    reliability=ReliabilityPolicy.RELIABLE
+)
 
 SM_INIT = 0
 SM_WAITING_FOR_NEW_TASK = 10
@@ -23,16 +30,6 @@ SM_TURNING_LEFT_2 = 45
 SM_TURNING_RIGHT_1 = 50
 SM_TURNING_RIGHT_2 = 55
 SM_TURNING_FINISHED = 60
-SM_PASS_ON_RIGHT_1 = 70
-SM_PASS_ON_RIGHT_2 = 80
-SM_PASS_ON_RIGHT_3 = 90
-SM_PASS_ON_RIGHT_4 = 100
-SM_PASS_ON_RIGHT_5 = 110
-SM_PASS_ON_LEFT_1 = 120
-SM_PASS_ON_LEFT_2 = 130
-SM_PASS_ON_LEFT_3 = 140
-SM_PASS_ON_LEFT_4 = 150
-SM_PASS_ON_LEFT_5 = 160
 MAX_STEERING = 0.5
 
 class BehaviorsNode(Node):
@@ -60,8 +57,6 @@ class BehaviorsNode(Node):
         self.dist_to_obs = None
         self.start_change_lane_on_left = False
         self.start_change_lane_on_right = False
-        self.start_pass_on_left = False
-        self.start_pass_on_right = False
         self.current_x, self.current_y, self.current_a = 0, 0, 0
         self.last_x = 0
         
@@ -101,13 +96,9 @@ class BehaviorsNode(Node):
         self.sub_enable_follow = self.create_subscription(
             Bool, "/BMW/follow/enable", self.callback_enable_follow, 10)
         self.sub_start_change_left = self.create_subscription(
-            Bool, "/BMW/change_lane_on_left/started", self.callback_start_change_lane_on_left, 10)
+            Bool, "/BMW/change_lane_on_left/started", self.callback_start_change_lane_on_left, qos_latched)
         self.sub_start_change_right = self.create_subscription(
-            Bool, "/BMW/change_lane_on_right/started", self.callback_start_change_lane_on_right, 10)
-        self.sub_start_pass_left = self.create_subscription(
-            Bool, "/BMW/pass_on_left/started", self.callback_start_pass_on_left, 10)
-        self.sub_start_pass_right = self.create_subscription(
-            Bool, "/BMW/pass_on_right/started", self.callback_start_pass_on_right, 10)
+            Bool, "/BMW/change_lane_on_right/started", self.callback_start_change_lane_on_right, qos_latched)
         self.sub_dist_to_obstacle = self.create_subscription(
             Float64, "/BMW/obstacle_distance", self.callback_dist_to_obstacle, 10)
         self.sub_current_pose = self.create_subscription(
@@ -205,20 +196,11 @@ class BehaviorsNode(Node):
         self.start_change_lane_on_left = msg.data
         if self.start_change_lane_on_left:
             self.enable_follow, self.enable_cruise = False, False
+            self.get_logger().warn(f"Received change lane on left")              
 
     def callback_start_change_lane_on_right(self, msg):
         self.start_change_lane_on_right = msg.data
         if self.start_change_lane_on_right:
-            self.enable_follow, self.enable_cruise = False, False
-
-    def callback_start_pass_on_left(self, msg):
-        self.start_pass_on_left = msg.data
-        if self.start_pass_on_left:
-            self.enable_follow, self.enable_cruise = False, False
-
-    def callback_start_pass_on_right(self, msg):
-        self.start_pass_on_right = msg.data
-        if self.start_pass_on_right:
             self.enable_follow, self.enable_cruise = False, False
 
     def callback_current_pose(self, msg):
@@ -293,14 +275,6 @@ class BehaviorsNode(Node):
                 self.state = SM_TURNING_RIGHT_1
                 self.start_change_lane_on_right = False
                 self.get_logger().info("Starting change lane on right")
-            elif self.start_pass_on_left:
-                self.state = SM_PASS_ON_LEFT_1
-                self.start_pass_on_left = False
-                self.get_logger().info("Starting passing on left")
-            elif self.start_pass_on_right:
-                self.state = SM_PASS_ON_RIGHT_1
-                self.start_pass_on_right = False
-                self.get_logger().info("Starting passing on right")
             else:
                 speed, steering = 0, 0
 
@@ -325,17 +299,23 @@ class BehaviorsNode(Node):
         # STATES FOR CHANGE TO LEFT LANE
         #
         elif self.state == SM_TURNING_LEFT_1:
+            self.get_logger().info("Hey! Entered here 1")
             if speed <= 10:
                 speed = self.max_speed
             steering = self.calculate_turning_steering(1.2, 2.9, speed)
+            self.get_logger().info(f"Steering calculated: {steering}") 
+            self.get_logger().info(f"self.current_y: {self.current_y}")
             if self.current_y > -0.7:  # Vehicle has moved to the left. Right lane has y=-1.5 and center is around y=0
                 self.get_logger().info("Moving to right to align with left lane")
                 self.state = SM_TURNING_LEFT_2 
 
         elif self.state == SM_TURNING_LEFT_2:
+            self.get_logger().info("Hey! Entered here 2")        
             if speed <= 10:
                 speed = self.max_speed
             steering = self.calculate_turning_steering(-1.2, 2.9, speed)
+            self.get_logger().info(f"Steering calculated: {steering}") 
+            self.get_logger().info(f"self.current_y: {self.current_y}")            
             if self.current_y > 1.0 or abs(self.current_a) < 0.2:  # Vehicle has moved to the left lane. Left lane has y=1.5
                 self.get_logger().info("Change lane on left finished")
                 self.pub_change_lane_finished.publish(Bool(data=True))
@@ -360,102 +340,12 @@ class BehaviorsNode(Node):
                 self.get_logger().info("Change lane on right finished")
                 self.pub_change_lane_finished.publish(Bool(data=True))
                 self.state = SM_WAITING_FOR_NEW_TASK
-
-        #
-        # STATES FOR PASSING ON THE LEFT
-        #
-        elif self.state == SM_PASS_ON_LEFT_1:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(1.2, 2.9, speed)
-            if self.current_y > -0.7:  # Vehicle has moved to the left. Right lane has y=-1.5 and center is around y=0
-                self.get_logger().info("Moving to right to align with left lane")
-                self.state = SM_PASS_ON_LEFT_2
-
-        elif self.state == SM_PASS_ON_LEFT_2:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(-1.2, 2.9, speed)
-            if self.current_y > 1.0 or abs(self.current_a) < 0.2:  # Vehicle has moved to the left lane. Left lane has y=1.5
-                self.get_logger().info("Moving to left lane finished. Starting to follow lane")
-                self.state = SM_PASS_ON_LEFT_3
-                self.last_x = self.current_x
-
-        elif self.state == SM_PASS_ON_LEFT_3:
-            speed, steering = self.calculate_control(
-                self.lane_rho_l, self.lane_theta_l, self.lane_rho_r, self.lane_theta_r,
-                self.goal_rho_l, self.goal_theta_l, self.goal_rho_r, self.goal_theta_r)
-            if self.free_north_east and self.free_east:
-                self.state = SM_PASS_ON_LEFT_4
-
-        elif self.state == SM_PASS_ON_LEFT_4:
-            if speed == 0:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(-1.2, 2.9, speed)
-            if self.current_y < 0.7:  # Vehicle has moved to the right. Left lane has y=1.5 and center is around y=0
-                self.get_logger().info("Moving to right to align with right lane after passing on left")
-                self.state = SM_PASS_ON_LEFT_5
-
-        elif self.state == SM_PASS_ON_LEFT_5:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(1.2, 2.9, speed)
-            if self.current_y < -1.0 or abs(self.current_a) < 0.2:  # Vehicle has moved to the right lane. Right lane has y=-1.5
-                self.pub_pass_finished.publish(Bool(data=True))
-                self.get_logger().info("Passing on left finished")
-                self.state = SM_WAITING_FOR_NEW_TASK
-
-        #
-        # STATES FOR PASSING ON THE RIGHT
-        #
-        elif self.state == SM_PASS_ON_RIGHT_1:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(-1.2, 2.9, speed)
-            if self.current_y < 0.7:  # Vehicle has moved to the right. Right lane has y=-1.5 and center is around y=0
-                self.get_logger().info("Moving to left to align with right lane")
-                self.state = SM_PASS_ON_RIGHT_2
-
-        elif self.state == SM_PASS_ON_RIGHT_2:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(1.2, 2.9, speed)
-            if self.current_y < -1.0 or abs(self.current_a) < 0.2:  # Vehicle has moved to the right lane. Right lane has y=-1.5
-                self.get_logger().info("Moving to right lane finished. Starting to follow lane.")
-                self.state = SM_PASS_ON_RIGHT_3
-                self.last_x = self.current_x
-
-        elif self.state == SM_PASS_ON_RIGHT_3:
-            speed, steering = self.calculate_control(
-                self.lane_rho_l, self.lane_theta_l, self.lane_rho_r, self.lane_theta_r,
-                self.goal_rho_l, self.goal_theta_l, self.goal_rho_r, self.goal_theta_r)
-            if self.free_north_west and self.free_west:
-                self.state = SM_PASS_ON_RIGHT_4
-
-        elif self.state == SM_PASS_ON_RIGHT_4:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(1.2, 2.9, speed)
-            if self.current_y > -0.7:  # Vehicle has moved to the right. Left lane has y=1.5 and center is around y=0
-                self.get_logger().info("Moving to right to align with left lane after passing on right")
-                self.state = SM_PASS_ON_RIGHT_5
-
-        elif self.state == SM_PASS_ON_RIGHT_5:
-            if speed <= 10:
-                speed = self.max_speed
-            steering = self.calculate_turning_steering(-1.2, 2.9, speed)
-            if self.current_y > 1.0 or abs(self.current_a) < 0.2:  # Vehicle has moved to the left lane. Left lane has y=1.5
-                self.get_logger().info("Passing on right finished")
-                self.pub_pass_finished.publish(Bool(data=True))
-                self.state = SM_WAITING_FOR_NEW_TASK
                 
         else:
             self.get_logger().error("Invalid STATE")
             return
         
-        #print("DEBUG speed type:", type(speed), "value:", speed, flush=True)
-
-        #self.get_logger().debug(f"DEBUG speed raw: {speed!r} ({type(speed)}), steering raw: {steering!r} ({type(steering)})")
+        self.get_logger().info(f"speed raw: {speed!r} ({type(speed)}), steering raw: {steering!r} ({type(steering)})")
         # Ensure speed and steering are Python floats (avoid numpy types or None)
         try:
             speed_val = float(speed)

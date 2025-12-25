@@ -62,7 +62,7 @@ setup(
          'success = self_driving_car.success:main',
          'stop = self_driving_car.stop:main',
          'latent_collision_detector=self_driving_car.latent_collision_detector:main',
-         'test_AP = self_driving_car.test_AP:main'  
+         'action_policy = self_driving_car.action_policy:main'  
       ],
     },
 )

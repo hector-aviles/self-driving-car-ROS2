@@ -135,16 +135,6 @@ def generate_launch_description():
             "car_link", "accelerometer_link"
         ]
     )
-    '''
-    robot_state_pub = Node(
-       package="robot_state_publisher",
-       executable="robot_state_publisher",
-       parameters=[{
-             "robot_description": open(
-             os.path.join(project_dir, "urdf", "bmw.urdf")).read()
-       }]
-    )      
-    '''
     # ROS 2 Nodes
     ros_nodes = [  
     
@@ -200,7 +190,6 @@ def generate_launch_description():
        static_tf_camera,
        static_tf_lidar,
        static_tf_accelerometer,
-       #robot_state_pub,
        *ros_nodes
     ])
 

@@ -5,7 +5,6 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/velodyne/protos/VelodyneHDL-64E.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/RoadIntersection.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/range_rover/RangeRoverSportSVRSimple.proto"
@@ -38,7 +37,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.2807153974031928 0.2450522716857514 -0.9279807378401882 1.7798703911559848
-  position 59.94109267851829 172.21171228381567 126.65471758472889
+  position 83.63191514037491 111.82429127202778 75.83564294000313
 }
 StraightRoadSegment {
   width 11
@@ -91,29 +90,20 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF BMW_X5 BmwX5 {
-  hidden position_0_0 2.6837689523508798e-08
-  hidden position2_0_0 -3.012739613882307e-06
-  hidden position_0_1 2.7917672272742343e-08
-  hidden position2_0_1 -1.4533823191221875e-05
-  hidden position_0_2 0.20473340431695977
-  hidden position_0_3 -3.707249440996783
-  hidden linearVelocity_0 -6.116436625381127e-06 4.92710270924806e-08 -1.5287191524736393e-05
-  hidden angularVelocity_0 -1.0987142095642388e-07 -1.3639219651862995e-05 1.401155804920455e-12
-  hidden rotation_1 1.3418312376105894e-08 0.9999603255229522 -0.008907714635719549 3.012836445832564e-06
-  hidden linearVelocity_1 -5.272876340571199e-06 4.247619010850204e-08 1.9148544382368416e-07
-  hidden angularVelocity_1 -1.106895962346534e-07 -1.3740671133502456e-05 1.3847458169141132e-12
-  hidden rotation_2 -1.3958810384032455e-08 -0.9999981551227862 -0.0019208724642002762 1.4533850454127814e-05
-  hidden linearVelocity_2 -5.272874568640892e-06 4.2476070150670265e-08 1.914833397452275e-07
-  hidden angularVelocity_2 -1.1068917333641502e-07 -1.3740670100714925e-05 1.3679013898730746e-12
-  hidden rotation_3 0 -1 0 0.20473340431696047
-  hidden linearVelocity_3 -5.615602159854808e-06 4.523752947359941e-08 -8.047610945211431e-07
-  hidden angularVelocity_3 -1.209961418709781e-07 -1.5019087538065428e-05 1.5388308430277216e-12
-  hidden rotation_4 0 -0.9999999999999999 0 3.707249440996783
-  hidden linearVelocity_4 -5.6156002744656394e-06 4.523689585437954e-08 -8.047632013437745e-07
-  hidden angularVelocity_4 -1.2099234623416487e-07 -1.501908262131375e-05 1.545012444592461e-12
-  translation 15.280986415464799 -2.6435580583556755 0.31692571149721893
-  rotation -0.0019679480814550226 -0.48636238516642066 -0.8737549756514001 0.00922368300478481
+  hidden position_0_0 -7.123511727693187e-11
+  hidden position2_0_0 -3.350678008026074e-07
+  hidden position_0_1 1.0846961585307937e-10
+  hidden position2_0_1 -3.3513619055277076e-07
+  hidden position_0_2 0.205360624205508
+  hidden position_0_3 -3.706538094494783
+  hidden rotation_1 -3.5617557833537936e-11 0.9999999774008093 0.00021259910828925249 3.345302391148161e-07
+  hidden rotation_2 -5.42348050858642e-11 -0.9999999476226505 -0.0003236583013992567 3.345302391148161e-07
+  hidden rotation_3 0 -1 0 0.2053606242055075
+  hidden rotation_4 0 -1 0 3.706538094494783
+  translation 15.286166176294868 -1.9236345679966758 0.3169249102112208
+  rotation -0.0019675232721696584 -0.48683887735317416 -0.8734895742650135 0.0092154327051104
   color 0.643137 0 0
+  name "BMW_X5"
   controller "bmw_x5_controller"
   windshieldWipers FALSE
   sensorsSlotFront [
@@ -133,17 +123,15 @@ DEF BMW_X5 BmwX5 {
       noise 0.02
     }
     Lidar {
-       name "Velodyne HDL-64E"
-       translation 0.3 0 0.15
-       rotation 0 0 0 0
-       type "fixed" 
-       fieldOfView  6.28318530718
-       verticalFieldOfView 0.4677     # ~26.8°
-       numberOfLayers 64
-       horizontalResolution 4500
-       maxRange 120.0
-       minRange 0.05
-       noise 0.02
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      numberOfLayers 64
+      minRange 0.05
+      maxRange 120
+      noise 0.02
     }
   ]
   interior FALSE
@@ -153,7 +141,7 @@ DEF BMW_X5 BmwX5 {
   shifter FALSE
 }
 DEF vehicle_transverse_1 RangeRoverSportSVRSimple {
-  translation 83.3717 -43.5952 0.4
+  translation 83.3717 -41.7463578205718 0.4
   rotation 0 0 1 1.5708
   name "DEF vehicle_transverse_1"
 }

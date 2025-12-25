@@ -2,7 +2,6 @@
 
 import math
 import rclpy
-import random
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
@@ -15,9 +14,7 @@ from controller import Radar
 SM_INIT = 0
 SM_TURN_RIGHT_1 = 10
 SM_TURN_RIGHT_2 = 20
-SM_TURN_LEFT_1 = 30
-SM_TURN_LEFT_2 = 40
-SM_CRUISE = 50
+SM_CRUISE = 30
 MAX_STEERING = 0.5
 
 
@@ -46,15 +43,11 @@ class CitroenCZero_Controller(Node):
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_a = 0.0
-        self.speed = 0.0
+        self.speed = 10.0
         self.max_speed = 30.0
         self.state = SM_INIT
         self.steering = 0.0
         self.free_N = True
-        self.turn_direction = None  # 'right' or 'left'
-
-        # Initialize random seed with current time
-        random.seed()
 
         # Radar device
         self.frontal_radar = Radar("Sms UMRR 0a29")
@@ -119,12 +112,12 @@ class CitroenCZero_Controller(Node):
             self.wait_timer.cancel()
             # Main loop at TIME_STEP ms = Hz
             self.main_timer = self.create_timer(
-                self.TIME_STEP / 1000.0, self.main_loop
+                self.TIME_STEP / 1000.0, self.control_loop
             )
 
     # -------------------- Main control loop --------------------
 
-    def main_loop(self):
+    def control_loop(self):
         # Step Webots driver
         if self.driver.step() == -1:
             return
@@ -141,21 +134,12 @@ class CitroenCZero_Controller(Node):
             if self.state == SM_INIT:
                 if -self.fov <= r.azimuth <= self.fov and r.distance <= self.valid_dist:
                     self.free_N = False
-                    
-                    # Random decision for turn direction
-                    self.turn_direction = random.choice(['right', 'left'])
-                    
-                    if self.turn_direction == 'right':
-                        self.get_logger().info("START CitroenCZero swerving RIGHT")
-                        self.state = SM_TURN_RIGHT_1
-                    else:
-                        self.get_logger().info("START CitroenCZero swerving LEFT")
-                        self.state = SM_TURN_LEFT_1
+                    self.get_logger().info("START CitroenCZero swerving")
+                    self.state = SM_TURN_RIGHT_1
 
             elif self.state == SM_TURN_RIGHT_1:
                 if self.speed <= 10:
                     self.speed = self.max_speed
-                # Right turn: negative angular velocity for clockwise turn
                 self.steering = calculate_turning_steering(-1.2, 2.9, self.speed)
                 if self.current_y < 2.5:
                     self.state = SM_TURN_RIGHT_2
@@ -163,32 +147,11 @@ class CitroenCZero_Controller(Node):
             elif self.state == SM_TURN_RIGHT_2:
                 if self.speed <= 10:
                     self.speed = self.max_speed
-                # Counter-steer to straighten out
                 self.steering = calculate_turning_steering(1.2, 2.9, self.speed)
 
                 if self.current_y > 2.5 or abs(self.current_a) < 0.05:
-                    self.get_logger().info("CitroenCZero RIGHT swerving FINISHED")
+                    self.get_logger().info("CitroenCZero swerving FINISHED")
                     self.state = SM_CRUISE
-                    self.turn_direction = None  # Reset turn direction
-
-            elif self.state == SM_TURN_LEFT_1:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Left turn: positive angular velocity for counter-clockwise turn
-                self.steering = calculate_turning_steering(1.2, 2.9, self.speed)
-                if self.current_y > -2.5:  # Different threshold for left turn
-                    self.state = SM_TURN_LEFT_2
-
-            elif self.state == SM_TURN_LEFT_2:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Counter-steer to straighten out
-                self.steering = calculate_turning_steering(-1.2, 2.9, self.speed)
-
-                if self.current_y < -2.5 or abs(self.current_a) < 0.05:  # Different condition for left turn
-                    self.get_logger().info("CitroenCZero LEFT swerving FINISHED")
-                    self.state = SM_CRUISE
-                    self.turn_direction = None  # Reset turn direction
 
             elif self.state == SM_CRUISE:
                 self.steering = 0.0
@@ -209,3 +172,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+

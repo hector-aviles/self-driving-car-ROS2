@@ -142,6 +142,7 @@ DEF BMW_X5 BmwX5 {
   completeInterior FALSE
   shifter FALSE
   controller "bmw_x5_controller"
+  name "BMW_X5"
 }
 DEF vehicle_1 LincolnMKZSimple {
   translation 31.79644043765747 -2 0.45

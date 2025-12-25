@@ -55,7 +55,7 @@ def generate_launch_description():
 
     if not world_file:
         return LaunchDescription([
-            LogInfo(msg="[reference.py] ERROR: side_swipe_1.wbt not found!")
+            LogInfo(msg="[side_swipe_1.py] ERROR: side_swipe_1.wbt not found!")
         ])
 
     project_dir = find_project_path(pkg_dir)
@@ -72,7 +72,7 @@ def generate_launch_description():
     )
 
     log_env = LogInfo(
-        msg=f"[reference.py] WEBOTS_PROJECT_PATH = {project_dir}"
+        msg=f"[side_swipe_1.py] WEBOTS_PROJECT_PATH = {project_dir}"
     )
 
     # Launch Webots itself
@@ -119,7 +119,7 @@ def generate_launch_description():
         output="screen",
         arguments=[
             "0.0", "0.0", "2.0",
-            "-0.2618", "0", "0",
+            "0.0", "0.0", "0.0",
             "car_link", "lidar_link"
         ]
     )
@@ -135,16 +135,6 @@ def generate_launch_description():
             "car_link", "accelerometer_link"
         ]
     )
-    
-    robot_state_pub = Node(
-       package="robot_state_publisher",
-       executable="robot_state_publisher",
-       parameters=[{
-             "robot_description": open(
-             os.path.join(project_dir, "urdf", "bmw.urdf")).read()
-       }]
-    )      
-    
     # ROS 2 Nodes
     ros_nodes = [  
     
@@ -171,6 +161,11 @@ def generate_launch_description():
         Node(package="self_driving_car", executable="success",
              name="success", output="screen",
              parameters=[{"use_sim_time": True}]),
+
+        Node(package="self_driving_car", executable="latent_collision_detector",
+             name="latent_collision_detector", output="screen",
+             parameters=[{"use_sim_time": True}]),
+
     ]
 
     # Launch arguments
@@ -195,8 +190,6 @@ def generate_launch_description():
        static_tf_camera,
        static_tf_lidar,
        static_tf_accelerometer,
-       robot_state_pub,
        *ros_nodes
     ])
-
 

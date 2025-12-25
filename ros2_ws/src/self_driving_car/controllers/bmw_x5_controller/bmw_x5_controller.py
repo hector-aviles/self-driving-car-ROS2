@@ -148,12 +148,14 @@ class BMWX5Controller(Node):
 
     # -------- Callbacks (ROS1 parity) --------
     def cb_speed(self, msg: Float64):
+        self.get_logger().info(f"Speed to {msg.data}")
         try:
             self.driver.setCruisingSpeed(float(msg.data))
         except Exception as e:
             self.get_logger().warn(f"Speed command failed: {e}")
 
     def cb_steering(self, msg: Float64):
+        self.get_logger().info(f"Steering to {msg.data}")    
         try:
             # Same sign convention as ROS1
             self.driver.setSteeringAngle(-float(msg.data))
@@ -163,6 +165,10 @@ class BMWX5Controller(Node):
     # -------- Main loop --------
     def spin(self):
         while self.driver.step() != -1:
+        
+
+            # ---- LET ROS PROCESS SUBSCRIPTIONS ----
+            rclpy.spin_once(self, timeout_sec=0.0)        
 
             sim_t = self.driver.getTime()
 
