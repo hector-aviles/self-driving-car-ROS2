@@ -1,25 +1,29 @@
 #!/usr/bin/env python3
 """
-This node implements the action policy of the self-driving car
-obtained from modeling and training MDPs using MDP-ProbLog.
-This node provides several functions to check if there are
-other vehicles around the car and to execute the three
-different behaviors: cruise, follow and change_lane. 
+Action Policy node (ROS2)
+
+Implements the decision policy obtained from MDP-ProbLog.
+Execution model:
+- Explicit main loop
+- spin_once() for callbacks
+- Fixed-rate policy evaluation
 """
+
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64MultiArray, Empty, Bool, String, Float64
-from rosgraph_msgs.msg import Clock 
-import sys
-import pandas as pd
-import pickle
-import time
-import numpy as np
-import os
 
-# Import the ActionPolicy class
-from sklearn.base import BaseEstimator, ClassifierMixin
+from std_msgs.msg import Float64, Empty, Bool, String
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
+
+import sys
+import time
+import pandas as pd
+import numpy as np
+
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+
+# ---------------- QoS ----------------
 
 qos_latched = QoSProfile(
     depth=1,
@@ -28,7 +32,10 @@ qos_latched = QoSProfile(
 )
 
 
+# ---------------- Action Policy ----------------
+
 class ActionPolicy(BaseEstimator, ClassifierMixin):
+
     def __init__(self):
         # Precomputed lookup table of size 128
         self.actions = [None] * 128
@@ -161,21 +168,27 @@ class ActionPolicy(BaseEstimator, ClassifierMixin):
         self.actions[126] = "change_to_right"
         self.actions[127] = "cruise"
 
+
     def fit(self, X, y=None):
         return self
 
     def predict(self, X):
-        cols = ['curr_lane', 'free_E', 'free_NE', 'free_NW', 'free_SE', 'free_SW', 'free_W']
+        cols = ['curr_lane', 'free_E', 'free_NE', 'free_NW',
+                'free_SE', 'free_SW', 'free_W']
         data = X[cols].to_numpy().astype(bool).astype(int)
         powers = 2 ** np.arange(7)
         indices = data @ powers
         return np.array(self.actions)[indices]
 
+
+# ---------------- Node ----------------
+
 class ActionPolicyNode(Node):
+
     def __init__(self, speed_left, speed_right, speed_citroen):
         super().__init__('action_policy')
-        
-        # Initialize variables
+
+        # ---- State flags ----
         self.free_N = True
         self.free_NW = True
         self.free_W = True
@@ -185,156 +198,118 @@ class ActionPolicyNode(Node):
         self.free_SE = True
         self.curr_lane = True
         self.change_lane_finished = False
-         
+
         self.executing_lane_change = False
-        self.pending_action = None        
-        
-        self.vel_vehicles_left_lane = int(speed_left)
-        self.vel_vehicles_right_lane = int(speed_right)
-        self.vel_citroen_czero = int(speed_citroen)
-        
-        print("INITIALIZING POLICY...", flush=True)
-        
-        # Create subscribers
-        self.create_subscription(Bool, "/BMW/free_N", self.callback_free_N, 10)
-        self.create_subscription(Bool, "/BMW/free_NW", self.callback_free_NW, 10)
-        self.create_subscription(Bool, "/BMW/free_W", self.callback_free_W, 10)
-        self.create_subscription(Bool, "/BMW/free_SW", self.callback_free_SW, 10)
-        self.create_subscription(Bool, "/BMW/free_NE", self.callback_free_NE, 10)
-        self.create_subscription(Bool, "/BMW/free_E", self.callback_free_E, 10)
-        self.create_subscription(Bool, "/BMW/free_SE", self.callback_free_SE, 10)
-        self.create_subscription(Bool, "/BMW/current_lane", self.callback_curr_lane, 10)
-        self.create_subscription(Bool, "/BMW/change_lane/finished",     self.callback_change_lane_finished, 10)
 
-        # Create publishers
-        self.pub_policy_started = self.create_publisher(Empty, "/BMW/policy/started", 1)
-        self.pub_cruise = self.create_publisher(Bool, "/BMW/cruise/enable", qos_latched)
-        self.pub_keep_distance = self.create_publisher(Bool, "/BMW/follow/enable", qos_latched)
-        self.pub_change_lane_on_left = self.create_publisher(Bool, "/BMW/change_lane_on_left/started", qos_latched)
-        self.pub_change_lane_on_right = self.create_publisher(Bool, "/BMW/change_lane_on_right/started", qos_latched)
-        self.pub_action = self.create_publisher(String, "/BMW/action", qos_latched)
-        self.pub_speed_vehicles_left_lane = self.create_publisher(Float64, "/vehicles_left_lane/speed", 1)
-        self.pub_speed_vehicles_right_lane = self.create_publisher(Float64, "/vehicles_right_lane/speed", 1)
-        self.pub_speed_citroen_czero = self.create_publisher(Float64, "/CitroenCZero/speed", 1)
-        
-        # Create ActionPolicy model
-        self.get_logger().info("Creating the decision-maker module based on an action policy...")
-        try:
-            self.model = ActionPolicy()
-            self.get_logger().info("Decision-maker module created successfully")
-        except Exception as error:
-            self.get_logger().error(f"Error creating the decision-maker module: {error}")
-            
-        # Create timer for main loop
-        self.timer = self.create_timer(0.1, self.main_loop)  # 10Hz
-        
-        # Initial delay for policy startup
-        self.startup_counter = 0
-        self.startup_timer = self.create_timer(1.0, self.startup_callback)
-        
-        self.action = "NA"
-        self.action_prev = "NA"
+        # ---- Speeds ----
+        self.vel_vehicles_left_lane = float(speed_left)
+        self.vel_vehicles_right_lane = float(speed_right)
+        self.vel_citroen_czero = float(speed_citroen)
 
-    def startup_callback(self):
-        if self.startup_counter < 2:
-            self.pub_policy_started.publish(Empty())
-            self.get_logger().info(f"Publishing policy_started {self.startup_counter}")
-            self.startup_counter += 1
-        else:
-            self.destroy_timer(self.startup_timer)
+        # ---- Subscribers ----
+        self.create_subscription(Bool, "/BMW/free_N", self.cb_free_N, 10)
+        self.create_subscription(Bool, "/BMW/free_NW", self.cb_free_NW, 10)
+        self.create_subscription(Bool, "/BMW/free_W", self.cb_free_W, 10)
+        self.create_subscription(Bool, "/BMW/free_SW", self.cb_free_SW, 10)
+        self.create_subscription(Bool, "/BMW/free_NE", self.cb_free_NE, 10)
+        self.create_subscription(Bool, "/BMW/free_E", self.cb_free_E, 10)
+        self.create_subscription(Bool, "/BMW/free_SE", self.cb_free_SE, 10)
+        self.create_subscription(Bool, "/BMW/current_lane", self.cb_curr_lane, 10)
+        self.create_subscription(Bool, "/BMW/change_lane/finished",
+                                 self.cb_change_lane_finished, 10)
 
-    def callback_free_N(self, msg):
-        self.free_N = msg.data
+        # ---- Publishers ----
+        self.pub_policy_started = self.create_publisher(
+            Empty, "/BMW/policy/started", qos_latched)
 
-    def callback_free_NW(self, msg):
-        self.free_NW = msg.data
+        self.pub_cruise = self.create_publisher(
+            Bool, "/BMW/cruise/enable", qos_latched)
 
-    def callback_free_W(self, msg):
-        self.free_W = msg.data
-    
-    def callback_free_SW(self, msg):
-        self.free_SW = msg.data
-    
-    def callback_free_NE(self, msg):
-        self.free_NE = msg.data    
+        self.pub_keep_distance = self.create_publisher(
+            Bool, "/BMW/follow/enable", qos_latched)
 
-    def callback_free_E(self, msg):
-        self.free_E = msg.data    
+        self.pub_change_lane_left = self.create_publisher(
+            Bool, "/BMW/change_lane_on_left/started", qos_latched)
 
-    def callback_free_SE(self, msg):
-        self.free_SE = msg.data    
-    
-    def callback_curr_lane(self, msg):
-        self.curr_lane = msg.data
-    
-    def callback_change_lane_finished(self, msg):
-        self.change_lane_finished = msg.data    
+        self.pub_change_lane_right = self.create_publisher(
+            Bool, "/BMW/change_lane_on_right/started", qos_latched)
 
-    def cruise(self):
-        self.publish_bool(self.pub_keep_distance, False)
-        self.publish_bool(self.pub_change_lane_on_left, False)
-        self.publish_bool(self.pub_change_lane_on_right, False)    
-        self.publish_bool(self.pub_cruise, True)    
+        self.pub_action = self.create_publisher(
+            String, "/BMW/action", qos_latched)
 
-    def keep_distance(self):
-        self.publish_bool(self.pub_cruise, False)
-        self.publish_bool(self.pub_change_lane_on_left, False)
-        self.publish_bool(self.pub_change_lane_on_right, False)    
-        self.publish_bool(self.pub_keep_distance, True)    
+        self.pub_speed_left = self.create_publisher(
+            Float64, "/vehicles_left_lane/speed", 1)
 
-    def change_lane_on_left(self):
-        self.publish_bool(self.pub_keep_distance, False)
-        self.publish_bool(self.pub_cruise, False)    
-        self.publish_bool(self.pub_change_lane_on_right, False)
-        self.publish_bool(self.pub_change_lane_on_left, True)
-    
-    def change_lane_on_right(self):
-        self.publish_bool(self.pub_keep_distance, False)
-        self.publish_bool(self.pub_cruise, False)    
-        self.publish_bool(self.pub_change_lane_on_left, False)    
-        self.publish_bool(self.pub_change_lane_on_right, True)
-        
-    def publish_bool(self, publisher, value):
+        self.pub_speed_right = self.create_publisher(
+            Float64, "/vehicles_right_lane/speed", 1)
+
+        self.pub_speed_citroen = self.create_publisher(
+            Float64, "/CitroenCZero/speed", 1)
+
+        # ---- Policy model ----
+        self.get_logger().info("Initializing ActionPolicy model...")
+        self.model = ActionPolicy()
+        self.get_logger().info("ActionPolicy ready")
+
+
+        self.policy_period = 0.1  # 10 Hz
+
+    # ---------------- Callbacks ----------------
+
+    def cb_free_N(self, msg): self.free_N = msg.data
+    def cb_free_NW(self, msg): self.free_NW = msg.data
+    def cb_free_W(self, msg): self.free_W = msg.data
+    def cb_free_SW(self, msg): self.free_SW = msg.data
+    def cb_free_NE(self, msg): self.free_NE = msg.data
+    def cb_free_E(self, msg): self.free_E = msg.data
+    def cb_free_SE(self, msg): self.free_SE = msg.data
+    def cb_curr_lane(self, msg): self.curr_lane = msg.data
+    def cb_change_lane_finished(self, msg): self.change_lane_finished = msg.data
+
+    # ---------------- Helpers ----------------
+
+    def publish_bool(self, pub, value):
         msg = Bool()
         msg.data = value
-        publisher.publish(msg)
+        pub.publish(msg)
 
-    def main_loop(self):
-        # Publish policy started
-        self.pub_policy_started.publish(Empty())
-        
-        if self.executing_lane_change:
-           if self.change_lane_finished:
-              self.get_logger().info("Lane change finished")
-              self.executing_lane_change = False
-              self.change_lane_finished = False
-           return        
-        
-        # Publish speed for vehicles in left lane
-        speed_left_msg = Float64()
-        speed_left_msg.data = float(self.vel_vehicles_left_lane)
-        self.pub_speed_vehicles_left_lane.publish(speed_left_msg)
-        
-        # Publish speed for vehicles in right lane
-        speed_right_msg = Float64()
-        speed_right_msg.data = float(self.vel_vehicles_right_lane)
-        self.pub_speed_vehicles_right_lane.publish(speed_right_msg)
-        
-        # Publish speed for Citroen CZero
-        speed_citroen_msg = Float64()
-        speed_citroen_msg.data = float(self.vel_citroen_czero)
-        self.pub_speed_citroen_czero.publish(speed_citroen_msg)
-        
-        try:
-            # Patch   
+    # ---------------- Main loop ----------------
+
+    def run(self):
+
+        while rclpy.ok():
+
+
+            # ---- Publish startup signal ONCE ----
+            self.pub_policy_started.publish(Empty())
+
+            start = time.time()            
+
+            # ---- Process ROS callbacks ----
+            rclpy.spin_once(self, timeout_sec=0.01)
+
+            # ---- Publish speeds ----
+            self.pub_speed_left.publish(Float64(data=self.vel_vehicles_left_lane))
+            self.pub_speed_right.publish(Float64(data=self.vel_vehicles_right_lane))
+            self.pub_speed_citroen.publish(Float64(data=self.vel_citroen_czero))
+
+            # ---- Lane-change guard ----
+            if self.executing_lane_change:
+                if self.change_lane_finished:
+                    self.get_logger().info("Lane change finished")
+                    self.executing_lane_change = False
+                    self.change_lane_finished = False
+                self._sleep_remaining(start)
+                continue
+
+            # ---- Patch logic (UNCHANGED) ----
             if self.curr_lane:
                 self.free_NE = self.free_N
-            else: 
-                self.free_NW = self.free_N   
-        
-            X = pd.DataFrame(columns=["curr_lane", "free_E", "free_NE", "free_NW", "free_SE", "free_SW", "free_W"])
+            else:
+                self.free_NW = self.free_N
 
-            row_val = {
+            # ---- Build feature vector ----
+            X = pd.DataFrame([{
                 "curr_lane": self.curr_lane,
                 "free_E": self.free_E,
                 "free_NE": self.free_NE,
@@ -342,87 +317,56 @@ class ActionPolicyNode(Node):
                 "free_SE": self.free_SE,
                 "free_SW": self.free_SW,
                 "free_W": self.free_W
-            }
+            }])
 
-            X.loc[len(X)] = row_val
+            # ---- Predict ----
+            action = self.model.predict(X)[0]
+            self.get_logger().info(f"State: {X}")
+            self.get_logger().info(f"Predicted action: {action}")
 
-        except Exception as error:
-            self.get_logger().error(f"An error occurred constructing predictors: {error}")
-            return
-               
-        try:
-            start_time = time.time()
-            y = self.model.predict(X)
-            self.action = y[0]
-            end_time = time.time()
-            testing_time = end_time - start_time
-            self.get_logger().info(f"Prediction time: {testing_time}")           
-        except Exception as error:
-            self.get_logger().error(f"An error occurred getting prediction: {error}")
-            return
-            
-        self.get_logger().info(f"Predicted action: {self.action}")
-        self.action_prev = self.action
-        
-        self.get_logger().info(f"curr_lane {self.curr_lane}, free_NE {self.free_NE}, free_NW {self.free_NW}, free_SW {self.free_SW}, free_W {self.free_W}, free_SE {self.free_SE}, free_E {self.free_E}")
-                
-        if self.action == "cruise":
-            self.pub_action.publish(String(data="cruise"))
-            self.cruise()                
-        elif self.action == "keep":
-            self.pub_action.publish(String(data="keep"))
-            self.keep_distance() 
-        elif self.action == "change_to_left":
-            if not self.executing_lane_change:
-               self.get_logger().info("Starting change lane LEFT")
-               self.executing_lane_change = True
-               self.change_lane_finished = False
-               self.pub_action.publish(String(data="change_to_left"))
-               self.change_lane_on_left()            
-        elif self.action == "change_to_right":
-            if not self.executing_lane_change:
-               self.get_logger().info("Starting change lane RIGHT")
-               self.executing_lane_change = True
-               self.change_lane_finished = False
-               self.pub_action.publish(String(data="change_to_right"))
-               self.change_lane_on_right()                           
-                                              
-        elif self.action == "change_to_right":
-            self.pub_action.publish(String(data="change_to_right"))
-            self.change_lane_on_right()
-        
-            self.get_logger().info("Waiting for change lane to finish...")
-        
-            finished = self.wait_for_change_lane_finished(timeout_sec=500.0)
-        
-            if finished:
-                self.get_logger().info("Change lane to RIGHT finished")
-            else:
-                self.get_logger().warn("Change lane to RIGHT timed out")
-        else:
-            self.get_logger().warn(f"Unknown action: {self.action}")
+            # ---- Execute ----
+            self.pub_action.publish(String(data=action))
+
+            if action == "cruise":
+                self.publish_bool(self.pub_cruise, True)
+
+            elif action == "keep":
+                self.publish_bool(self.pub_keep_distance, True)
+
+            elif action == "change_to_left" and not self.executing_lane_change:
+                self.get_logger().info("Starting lane change LEFT")
+                self.executing_lane_change = True
+                self.publish_bool(self.pub_change_lane_left, True)
+
+            elif action == "change_to_right" and not self.executing_lane_change:
+                self.get_logger().info("Starting lane change RIGHT")
+                self.executing_lane_change = True
+                self.publish_bool(self.pub_change_lane_right, True)
+
+            self._sleep_remaining(start)
+
+    def _sleep_remaining(self, start):
+        elapsed = time.time() - start
+        remaining = self.policy_period - elapsed
+        if remaining > 0:
+            time.sleep(remaining)
+
+
+# ---------------- Main ----------------
 
 def main():
     rclpy.init()
-    
+
     if len(sys.argv) != 4:
-        print("Usage: ros2 run self_driving_car action_policy speed_left_vehicles (m/s) speed_right_vehicles (m/s) speed_citroen (m/s)")
-        print("Example: ros2 run self_driving_car action_policy 20 25 18")
+        print("Usage: ros2 run self_driving_car action_policy v_left v_right v_citroen")
         return
-    
-    speed_left = sys.argv[1]
-    speed_right = sys.argv[2]
-    speed_citroen = sys.argv[3]
-    
-    node = ActionPolicyNode(speed_left, speed_right, speed_citroen)
-    
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+
+    node = ActionPolicyNode(sys.argv[1], sys.argv[2], sys.argv[3])
+    node.run()
+    node.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()
+

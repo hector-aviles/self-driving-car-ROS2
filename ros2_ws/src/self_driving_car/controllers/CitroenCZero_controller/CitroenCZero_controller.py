@@ -4,7 +4,6 @@ import math
 import rclpy
 import random
 from rclpy.node import Node
-from rclpy.qos import QoSProfile
 
 from std_msgs.msg import Bool, Float64, Empty
 from geometry_msgs.msg import Pose2D
@@ -12,37 +11,44 @@ from geometry_msgs.msg import Pose2D
 from vehicle import Driver
 from controller import Radar
 
+
+# -------------------- FSM States --------------------
+
 SM_INIT = 0
 SM_TURN_RIGHT_1 = 10
 SM_TURN_RIGHT_2 = 20
 SM_TURN_LEFT_1 = 30
 SM_TURN_LEFT_2 = 40
 SM_CRUISE = 50
+
 MAX_STEERING = 0.5
 
 
+# -------------------- Helpers --------------------
+
 def calculate_turning_steering(w, L, v):
-    if v == 0:
-        return 0
+    if v <= 0.1:
+        return 0.0
+
     k = L * w / v
     k = max(min(k, 0.5), -0.5)
 
     steering = math.asin(k)
-    steering = max(min(steering, MAX_STEERING), -MAX_STEERING)
+    return max(min(steering, MAX_STEERING), -MAX_STEERING)
 
-    return steering
 
+# -------------------- Controller --------------------
 
 class CitroenCZero_Controller(Node):
 
     def __init__(self):
         super().__init__('CitroenCZero')
 
-        # Webots driver
+        # --- Webots driver ---
         self.driver = Driver()
         self.TIME_STEP = int(self.driver.getBasicTimeStep())
 
-        # Internal state
+        # --- Vehicle state ---
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_a = 0.0
@@ -51,54 +57,44 @@ class CitroenCZero_Controller(Node):
         self.state = SM_INIT
         self.steering = 0.0
         self.free_N = True
-        self.turn_direction = None  # 'right' or 'left'
+        self.turn_direction = None
 
-        # Initialize random seed with current time
         random.seed()
 
-        # Radar device
+        # --- Radar ---
         self.frontal_radar = Radar("Sms UMRR 0a29")
         self.frontal_radar.enable(self.TIME_STEP)
 
-        self.valid_dist = 25
-        self.fov = math.atan2(3, self.valid_dist)
+        self.valid_dist = 25.0
+        self.fov = math.atan2(3.0, self.valid_dist)
 
-        # Subscribers
-        self.create_subscription(
-            Float64,
-            "/CitroenCZero/speed",
-            self.callback_speed,
-            10
-        )
-        self.create_subscription(  # <--- ¿?
-            Pose2D,
-            "/CitroenCZero/pose",
-            self.callback_pose,
-            10
-        )
+        # --- ROS interfaces ---
+        self.create_subscription(Float64, "/CitroenCZero/speed", self.callback_speed, 10)
+        self.create_subscription(Pose2D, "/CitroenCZero/pose", self.callback_pose, 10)
+        self.create_subscription(Empty, "/BMW/policy/started", self.callback_start_signal, 10)
 
-        # Publisher
-        self.pub_radar = self.create_publisher(
-            Bool,
-            "/CitroenCZero/free_N",
-            10
-        )
+        self.pub_radar = self.create_publisher(Bool, "/CitroenCZero/free_N", 10)
 
-        self.get_logger().info("supervisor_CitroenCZero waiting for /BMW/policy/started...")
-
-        # Wait for start signal through temporary subscription
         self.start_signal_received = False
-        self.create_subscription(
-            Empty,
-            "/BMW/policy/started",
-            self.callback_start_signal,
-            10
+
+        # --- Timing (Hz → seconds) ---
+        t0 = self.driver.getTime()
+
+        self.last_radar = t0
+        self.last_fsm = t0
+        self.last_actuation = t0
+        self.last_pub = t0
+
+        self.radar_interval = 0.05     # 20 Hz
+        self.fsm_interval = 0.05       # 20 Hz
+        self.actuation_interval = 0.05 # 20 Hz
+        self.pub_interval = 0.10       # 10 Hz
+
+        self.get_logger().info(
+            f"CitroenCZero controller initialized | basicTimeStep={self.TIME_STEP} ms"
         )
 
-        # Spin a timer slowly until start signal
-        self.wait_timer = self.create_timer(0.5, self.wait_for_start)
-
-    # -------------------- ROS2 Callbacks --------------------
+    # -------------------- ROS Callbacks --------------------
 
     def callback_speed(self, msg):
         self.speed = msg.data
@@ -108,43 +104,21 @@ class CitroenCZero_Controller(Node):
         self.current_y = msg.y
         self.current_a = msg.theta
 
-    def callback_start_signal(self, msg):
+    def callback_start_signal(self, _msg):
         self.start_signal_received = True
+        #self.get_logger().info("Start signal received.")
 
-    # -------------------- Start waiting --------------------
+    # -------------------- FSM Logic --------------------
 
-    def wait_for_start(self):
-        if self.start_signal_received:
-            self.get_logger().info("Start signal received. Beginning control loop.")
-            self.wait_timer.cancel()
-            # Main loop at TIME_STEP ms = Hz
-            self.main_timer = self.create_timer(
-                self.TIME_STEP / 1000.0, self.main_loop
-            )
+    def process_fsm(self, radar_returns):
 
-    # -------------------- Main control loop --------------------
-
-    def main_loop(self):
-        # Step Webots driver
-        if self.driver.step() == -1:
-            return
-
-        self.driver.setCruisingSpeed(self.speed)
-        self.driver.setSteeringAngle(self.steering)
-
-        radar_returns = self.frontal_radar.getTargets()
-        radar_returns = [r for r in radar_returns if r.distance != 1.0]
-
-        # --- FSM ---
         for r in radar_returns:
 
             if self.state == SM_INIT:
                 if -self.fov <= r.azimuth <= self.fov and r.distance <= self.valid_dist:
                     self.free_N = False
-                    
-                    # Random decision for turn direction
                     self.turn_direction = random.choice(['right', 'left'])
-                    
+
                     if self.turn_direction == 'right':
                         self.get_logger().info("START CitroenCZero swerving RIGHT")
                         self.state = SM_TURN_RIGHT_1
@@ -153,59 +127,85 @@ class CitroenCZero_Controller(Node):
                         self.state = SM_TURN_LEFT_1
 
             elif self.state == SM_TURN_RIGHT_1:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Right turn: negative angular velocity for clockwise turn
+                self.speed = max(self.speed, self.max_speed)
                 self.steering = calculate_turning_steering(-1.2, 2.9, self.speed)
                 if self.current_y < 2.5:
                     self.state = SM_TURN_RIGHT_2
 
             elif self.state == SM_TURN_RIGHT_2:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Counter-steer to straighten out
+                self.speed = max(self.speed, self.max_speed)
                 self.steering = calculate_turning_steering(1.2, 2.9, self.speed)
-
                 if self.current_y > 2.5 or abs(self.current_a) < 0.05:
                     self.get_logger().info("CitroenCZero RIGHT swerving FINISHED")
                     self.state = SM_CRUISE
-                    self.turn_direction = None  # Reset turn direction
 
             elif self.state == SM_TURN_LEFT_1:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Left turn: positive angular velocity for counter-clockwise turn
+                self.speed = max(self.speed, self.max_speed)
                 self.steering = calculate_turning_steering(1.2, 2.9, self.speed)
-                if self.current_y > -2.5:  # Different threshold for left turn
+                if self.current_y > -2.5:
                     self.state = SM_TURN_LEFT_2
 
             elif self.state == SM_TURN_LEFT_2:
-                if self.speed <= 10:
-                    self.speed = self.max_speed
-                # Counter-steer to straighten out
+                self.speed = max(self.speed, self.max_speed)
                 self.steering = calculate_turning_steering(-1.2, 2.9, self.speed)
-
-                if self.current_y < -2.5 or abs(self.current_a) < 0.05:  # Different condition for left turn
+                if self.current_y < -2.5 or abs(self.current_a) < 0.05:
                     self.get_logger().info("CitroenCZero LEFT swerving FINISHED")
                     self.state = SM_CRUISE
-                    self.turn_direction = None  # Reset turn direction
 
             elif self.state == SM_CRUISE:
                 self.steering = 0.0
+                self.free_N = True
 
-        # Publish radar free flag
-        self.pub_radar.publish(Bool(data=self.free_N))
+    # -------------------- Main Webots Loop --------------------
+
+    def main_loop(self):
+
+        radar_returns = []
+
+        while self.driver.step() != -1:
+
+            rclpy.spin_once(self, timeout_sec=0.0)
+
+            if not self.start_signal_received:
+                continue
+
+            sim_t = self.driver.getTime()
+
+            # --- Radar (20 Hz) ---
+            if sim_t - self.last_radar >= self.radar_interval:
+                self.last_radar = sim_t
+                radar_returns = [
+                    r for r in self.frontal_radar.getTargets()
+                    if r.distance != 1.0
+                ]
+
+            # --- FSM (20 Hz) ---
+            if sim_t - self.last_fsm >= self.fsm_interval:
+                self.last_fsm = sim_t
+                self.process_fsm(radar_returns)
+
+            # --- Actuation (20 Hz) ---
+            if sim_t - self.last_actuation >= self.actuation_interval:
+                self.last_actuation = sim_t
+                self.driver.setCruisingSpeed(self.speed)
+                self.driver.setSteeringAngle(self.steering)
+
+            # --- Publish free_N (10 Hz) ---
+            if sim_t - self.last_pub >= self.pub_interval:
+                self.last_pub = sim_t
+                self.pub_radar.publish(Bool(data=self.free_N))
 
 
-# ------------------------ MAIN ------------------------
+# -------------------- MAIN --------------------
 
 def main(args=None):
     rclpy.init(args=args)
     node = CitroenCZero_Controller()
-    rclpy.spin(node)
+    node.main_loop()
     node.destroy_node()
     rclpy.shutdown()
 
 
 if __name__ == '__main__':
     main()
+

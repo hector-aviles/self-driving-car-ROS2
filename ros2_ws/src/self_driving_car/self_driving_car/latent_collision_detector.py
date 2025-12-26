@@ -10,8 +10,7 @@ from rclpy.node import Node
 from rclpy.parameter import Parameter
 
 from std_msgs.msg import Bool, Float64, String, Empty
-from geometry_msgs.msg import Pose2D
-from radar_msgs.msg import RadarReturn, RadarScan
+from radar_msgs.msg import RadarScan
 
 
 class LatentCollisionDetector(Node):
@@ -100,15 +99,10 @@ class LatentCollisionDetector(Node):
         # Publishers
         # -------------------------------------------------
         self.pub_latent_collision = self.create_publisher(
-            Bool, "/BMW/latent_collision", 1)
+            Bool, "/BMW/latent_collision", 10)
 
         self.pub_type_latent_collision = self.create_publisher(
-            Float64, "/BMW/latent_collision/type", 1)
-
-        # -------------------------------------------------
-        # Timer (10 Hz)
-        # -------------------------------------------------
-        self.timer = self.create_timer(0.1, self.main_loop)
+            Float64, "/BMW/latent_collision/type", 10)
 
         self.get_logger().info("Latent collision detector initialized")
 
@@ -128,7 +122,7 @@ class LatentCollisionDetector(Node):
         self.policy_started = True
 
     # =====================================================
-    # Main logic
+    # Main logic (called manually)
     # =====================================================
 
     def main_loop(self):
@@ -143,7 +137,7 @@ class LatentCollisionDetector(Node):
         closest_obst = None
 
         # -------------------------------------------------
-        # Patch (same as your ROS1 logic)
+        # Patch (same as ROS1 logic)
         # -------------------------------------------------
         if self.curr_lane:
             self.free_NE = self.free_N
@@ -218,12 +212,16 @@ class LatentCollisionDetector(Node):
 
 # =========================================================
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
     node = LatentCollisionDetector()
 
     try:
-        rclpy.spin(node)
+        # ---- Non-blocking ROS loop ----
+        while rclpy.ok():
+            rclpy.spin_once(node, timeout_sec=0.01)
+            node.main_loop()
+
     except KeyboardInterrupt:
         pass
     finally:
