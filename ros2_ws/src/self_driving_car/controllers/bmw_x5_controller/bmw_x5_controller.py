@@ -127,7 +127,7 @@ class BMWX5Controller(Node):
         self.last_radar = t0
 
         # Conservative + reliable rates
-        self.lidar_interval = 0.20   # 5 Hz
+        self.lidar_interval = 0.05   # 5 Hz
         self.camera_interval = 0.125 # 8 Hz
         self.accel_interval = 0.04   # 25 Hz
         self.radar_interval = 0.05   # 20 Hz

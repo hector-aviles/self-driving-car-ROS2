@@ -93,7 +93,7 @@ DEF BMW_X5 BmwX5 {
       verticalFieldOfView 0.4677
       numberOfLayers 32
       minRange 0.05
-      maxRange 120
+      maxRange 60
       noise 0.02
     }
   ]

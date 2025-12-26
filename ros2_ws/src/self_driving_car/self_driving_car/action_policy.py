@@ -251,7 +251,6 @@ class ActionPolicyNode(Node):
         self.model = ActionPolicy()
         self.get_logger().info("ActionPolicy ready")
 
-
         self.policy_period = 0.1  # 10 Hz
 
     # ---------------- Callbacks ----------------

@@ -82,24 +82,25 @@ class ObstacleDetectorNode(Node):
             # Define regions
             # -------------------------------------------------
             N_points  = xyz[(xyz[:,0] >  2.5) & (xyz[:,0] <  25) & (xyz[:,1] <  1.5) & (xyz[:,1] > -1.5)]
-            NW_points = xyz[(xyz[:,0] >  5.0) & (xyz[:,0] <  25) & (xyz[:,1] <  4.0) & (xyz[:,1] >  1.2)]
-            W_points  = xyz[(xyz[:,0] > -5.0) & (xyz[:,0] <   5) & (xyz[:,1] <  4.0) & (xyz[:,1] >  1.2)]
-            SW_points = xyz[(xyz[:,0] > -25 ) & (xyz[:,0] <  -5) & (xyz[:,1] <  4.0) & (xyz[:,1] >  1.2)]
+            NW_points = xyz[(xyz[:,0] >  5.0) & (xyz[:,0] <  25) & (xyz[:,1] <  7.0) & (xyz[:,1] >  1.2)]
+            W_points  = xyz[(xyz[:,0] > -5.0) & (xyz[:,0] <   5) & (xyz[:,1] <  7.0) & (xyz[:,1] >  1.2)]
+            SW_points = xyz[(xyz[:,0] > -25 ) & (xyz[:,0] <  -5) & (xyz[:,1] <  7.0) & (xyz[:,1] >  1.2)]
 
-            NE_points = xyz[(xyz[:,0] >  5.0) & (xyz[:,0] <  25) & (xyz[:,1] > -4.0) & (xyz[:,1] < -1.2)]
-            E_points  = xyz[(xyz[:,0] > -5.0) & (xyz[:,0] <   5) & (xyz[:,1] > -4.0) & (xyz[:,1] < -1.2)]
-            SE_points = xyz[(xyz[:,0] > -25 ) & (xyz[:,0] <  -5) & (xyz[:,1] > -4.0) & (xyz[:,1] < -1.2)]
+            NE_points = xyz[(xyz[:,0] >  5.0) & (xyz[:,0] <  25) & (xyz[:,1] > -7.0) & (xyz[:,1] < -1.2)]
+            E_points  = xyz[(xyz[:,0] > -5.0) & (xyz[:,0] <   5) & (xyz[:,1] > -7.0) & (xyz[:,1] < -1.2)]
+            SE_points = xyz[(xyz[:,0] > -25 ) & (xyz[:,0] <  -5) & (xyz[:,1] > -7.0) & (xyz[:,1] < -1.2)]
 
             # -------------------------------------------------
             # Free / occupied logic
             # -------------------------------------------------
-            free_N  = N_points.shape[0]  < 20
-            free_NW = NW_points.shape[0] < 50
-            free_W  = W_points.shape[0]  < 50
-            free_SW = SW_points.shape[0] < 50
-            free_NE = NE_points.shape[0] < 50
-            free_E  = E_points.shape[0]  < 50
-            free_SE = SE_points.shape[0] < 50
+            free_N  = N_points.shape[0]  < 10
+            free_NW = NW_points.shape[0] < 20
+            free_W  = W_points.shape[0]  < 20
+            free_SW = SW_points.shape[0] < 20
+            free_NE = NE_points.shape[0] < 20
+            free_E  = E_points.shape[0]  < 20
+            free_SE = SE_points.shape[0] < 20
+            #self.get_logger().info(f"Free_N: {N_points.shape[0]} Free_NW: {NW_points.shape[0]} Free_W: {W_points.shape[0]} Free_SW: {SW_points.shape[0]} Free_NE: {NE_points.shape[0]} Free_E: {E_points.shape[0]} Free_SE: {SE_points.shape[0]}")
 
             self.publish_bool(self.pub_obs_N,  free_N)
             self.publish_bool(self.pub_obs_NW, free_NW)

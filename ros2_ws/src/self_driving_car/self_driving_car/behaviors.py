@@ -172,7 +172,7 @@ class BehaviorsNode(Node):
         if v == 0:
             return 0.0
         k = max(min(L * w / v, 0.5), -0.5)
-        self.get_logger().info(f"Steering calculation v:{v} k:{k}, L:{L} w:{w} math.asin(k): {math.asin(k)} MAX_STEERING:{MAX_STEERING} -MAX_STEERING:{-MAX_STEERING}")
+        #self.get_logger().info(f"Steering calculation v:{v} k:{k}, L:{L} w:{w} math.asin(k): {math.asin(k)} MAX_STEERING:{MAX_STEERING} -MAX_STEERING:{-MAX_STEERING}")
         return max(min(math.asin(k), MAX_STEERING), -MAX_STEERING)
 
     # =====================================================
@@ -219,32 +219,33 @@ class BehaviorsNode(Node):
             speed = self.max_speed
             steering = self.turning_steering(1.2, 2.9, speed)
             if self.current_y > -0.7:
-                self.get_logger().info(f"LEFT 1st condition Y: {self.current_y}")
+                #self.get_logger().info(f"LEFT 1st condition Y: {self.current_y}")
                 self.state = SM_TURN_LEFT_2
 
         elif self.state == SM_TURN_LEFT_2:
             speed = self.max_speed
             steering = self.turning_steering(-1.2, 2.9, speed)
             if self.current_y > 1.0 and abs(self.current_a) < 0.2:
-                self.get_logger().info(f"LEFT 2nd condition Y: {self.current_y} A: {self.current_a}") 
+                #self.get_logger().info(f"LEFT 2nd condition Y: {self.current_y} A: {self.current_a}") 
                 self.finish_lane_change()
 
         elif self.state == SM_TURN_RIGHT_1:
             speed = self.max_speed
             steering = self.turning_steering(-1.2, 2.9, speed)
             if self.current_y < 0.7:
-                self.get_logger().info(f"RIGHT 1st condition Y: {self.current_y}")
+                #self.get_logger().info(f"RIGHT 1st condition Y: {self.current_y}")
                 self.state = SM_TURN_RIGHT_2
 
         elif self.state == SM_TURN_RIGHT_2:
             speed = self.max_speed
             steering = self.turning_steering(1.2, 2.9, speed)
             if self.current_y < -1.0 and abs(self.current_a) < 0.2:
-                self.get_logger().info(f"RIGHT 2nd condition Y: {self.current_y} A: {self.current_a}")
+                #self.get_logger().info(f"RIGHT 2nd condition Y: {self.current_y} A: {self.current_a}")
                 self.finish_lane_change()
 
-        if self.state >= SM_TURN_LEFT_1:
-           self.get_logger().info(f"State: {self.state} Speed: {speed} Steering {steering} Y: {self.current_y} A: {self.current_a}")
+        #self.get_logger().info(f"State: {self.state}")
+        #if self.state >= SM_TURN_LEFT_1:
+           #self.get_logger().info(f"State: {self.state} Speed: {speed} Steering {steering} Y: {self.current_y} A: {self.current_a}")
         self.pub_speed.publish(Float64(data=float(speed)))
         self.pub_steering.publish(Float64(data=float(steering)))
 

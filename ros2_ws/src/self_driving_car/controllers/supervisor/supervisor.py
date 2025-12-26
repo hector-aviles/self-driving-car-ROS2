@@ -8,8 +8,12 @@ from std_msgs.msg import Empty, Float64
 from geometry_msgs.msg import Pose2D
 from controller import Supervisor
 
+# -----------------------------------------------------
+# Webots supervisor
+# -----------------------------------------------------
+
 robot = Supervisor()
-TIME_STEP = int(robot.getBasicTimeStep())  # Webots step (ms) sync with world 
+TIME_STEP = int(robot.getBasicTimeStep())  # Webots step (ms)
 MAX_VEHICLES = 5
 
 
@@ -47,15 +51,27 @@ class SupervisorNode(Node):
         ]
 
         # ---------------- Subscribers ----------------
-        self.create_subscription(Float64, '/vehicles_left_lane/speed',
-                                 self.callback_speed_vehicles_left_lane, 10)
+        self.create_subscription(
+            Float64,
+            '/vehicles_left_lane/speed',
+            self.callback_speed_vehicles_left_lane,
+            10
+        )
 
-        self.create_subscription(Float64, '/vehicles_right_lane/speed',
-                                 self.callback_speed_vehicles_right_lane, 10)
+        self.create_subscription(
+            Float64,
+            '/vehicles_right_lane/speed',
+            self.callback_speed_vehicles_right_lane,
+            10
+        )
 
         self.start_signal_received = False
-        self.create_subscription(Empty, '/BMW/policy/started',
-                                 self.callback_start_signal, 10)
+        self.create_subscription(
+            Empty,
+            '/BMW/policy/started',
+            self.callback_start_signal,
+            10
+        )
 
         # ---------------- Timing ----------------
         t0 = robot.getTime()
@@ -71,7 +87,8 @@ class SupervisorNode(Node):
         self.citroen_pub_interval = 0.05   # 20 Hz
 
         self.get_logger().info('Supervisor Node started')
-        self.get_logger().info('Waiting for start signal...')
+        self.get_logger().info('Publishing poses immediately')
+        self.get_logger().info('Vehicle motion will start after policy signal')
 
     # -----------------------------------------------------
 
@@ -79,15 +96,15 @@ class SupervisorNode(Node):
         self.get_logger().info('Initializing vehicle coordinates...')
 
         for group, axis in [
-            (self.vehicles, 0),
-            (self.vehicles_opposite, 0),
-            (self.vehicles_transverse, 1)
+            (self.vehicles, 0),              # X perturbation
+            (self.vehicles_opposite, 0),     # X perturbation
+            (self.vehicles_transverse, 1)    # Y perturbation
         ]:
             for vehicle in group:
                 if vehicle:
                     field = vehicle.getField("translation")
                     pos = field.getSFVec3f()
-                    pos[axis] += np.random.uniform(-2, 2)
+                    pos[axis] += np.random.uniform(-2.0, 2.0)
                     field.setSFVec3f(pos)
                     vehicle.resetPhysics()
 
@@ -102,34 +119,38 @@ class SupervisorNode(Node):
     def callback_start_signal(self, _msg):
         if not self.start_signal_received:
             self.start_signal_received = True
-            self.get_logger().info('Start signal received – supervision enabled')
+            self.get_logger().info('Policy started – vehicle motion enabled')
 
     # -----------------------------------------------------
 
     def step(self):
-
-        if not self.start_signal_received:
-            return
-
         sim_t = robot.getTime()
 
-        # -------- Vehicle motion (20 Hz) --------
-        if sim_t - self.last_motion >= self.motion_interval:
+        # -------- Vehicle motion (gated) --------
+        if self.start_signal_received and sim_t - self.last_motion >= self.motion_interval:
             self.last_motion = sim_t
 
             for vehicle in self.vehicles:
                 if vehicle:
                     y = vehicle.getPosition()[1]
-                    speed = self.speed_vehicles_left_lane if y > 0.0 else self.speed_vehicles_right_lane
+                    speed = (
+                        self.speed_vehicles_left_lane
+                        if y > 0.0 else
+                        self.speed_vehicles_right_lane
+                    )
                     vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
 
             for vehicle in self.vehicles_opposite:
                 if vehicle:
                     y = vehicle.getPosition()[1]
-                    speed = self.speed_vehicles_left_lane if y > 0.0 else self.speed_vehicles_right_lane
+                    speed = (
+                        self.speed_vehicles_left_lane
+                        if y > 0.0 else
+                        self.speed_vehicles_right_lane
+                    )
                     vehicle.setVelocity([-speed, 0, 0, 0, 0, 0])
 
-        # -------- Vehicle pose publishing (10 Hz) --------
+        # -------- Vehicle pose publishing (always) --------
         if sim_t - self.last_vehicle_pub >= self.vehicle_pub_interval:
             self.last_vehicle_pub = sim_t
 
@@ -147,12 +168,12 @@ class SupervisorNode(Node):
                         Pose2D(x=pos[0], y=pos[1], theta=0.0)
                     )
 
-        # -------- BMW pose (20 Hz) --------
+        # -------- BMW pose (always) --------
         if sim_t - self.last_bmw_pub >= self.bmw_pub_interval:
             self.last_bmw_pub = sim_t
             self.publish_bmw_pose()
 
-        # -------- Citroen pose (20 Hz) --------
+        # -------- Citroen pose (always) --------
         if sim_t - self.last_citroen_pub >= self.citroen_pub_interval:
             self.last_citroen_pub = sim_t
             self.publish_citroenczero_pose()
@@ -167,7 +188,9 @@ class SupervisorNode(Node):
         orient = self.bmw.getOrientation()
         theta = math.atan2(orient[3], orient[0])
 
-        self.pub_bmw_pose.publish(Pose2D(x=pos[0], y=pos[1], theta=theta))
+        self.pub_bmw_pose.publish(
+            Pose2D(x=pos[0], y=pos[1], theta=theta)
+        )
 
     def publish_citroenczero_pose(self):
         if not self.citroenczero:
@@ -177,7 +200,9 @@ class SupervisorNode(Node):
         orient = self.citroenczero.getOrientation()
         theta = math.atan2(orient[3], orient[0])
 
-        self.pub_citroenczero_pose.publish(Pose2D(x=pos[0], y=pos[1], theta=theta))
+        self.pub_citroenczero_pose.publish(
+            Pose2D(x=pos[0], y=pos[1], theta=theta)
+        )
 
 
 # -----------------------------------------------------
