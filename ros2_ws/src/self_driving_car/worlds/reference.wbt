@@ -123,17 +123,16 @@ DEF BMW_X5 BmwX5 {
       noise 0.02
     }
     Lidar {
-       name "Velodyne HDL-64E"
-       translation 0.3 0 0.15
-       rotation 0 0 0 0
-       type "fixed" 
-       fieldOfView  6.28318530718
-       verticalFieldOfView 0.4677     # ~26.8°
-       numberOfLayers 64
-       horizontalResolution 4500
-       maxRange 120.0
-       minRange 0.05
-       noise 0.02
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      defaultFrequency 10
+      numberOfLayers 32
+      minRange 0.05
+      maxRange 60
+      noise 0.02
     }
   ]
   interior FALSE
