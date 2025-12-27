@@ -50,6 +50,11 @@ class SupervisorNode(Node):
             for i in range(MAX_VEHICLES)
         ]
 
+        self.pub_vehicles_transverse_pose = [
+            self.create_publisher(Pose2D, f'/vehicle_transverse_{i+1}/pose', 10)
+            for i in range(MAX_VEHICLES)
+        ]
+
         # ---------------- Subscribers ----------------
         self.create_subscription(
             Float64,
@@ -148,7 +153,17 @@ class SupervisorNode(Node):
                         if y > 0.0 else
                         self.speed_vehicles_right_lane
                     )
-                    vehicle.setVelocity([-speed, 0, 0, 0, 0, 0])
+                    vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
+
+            for vehicle in self.vehicles_transverse:
+                if vehicle:
+                    y = vehicle.getPosition()[1]
+                    speed = (
+                        self.speed_vehicles_left_lane
+                        if y > 0.0 else
+                        self.speed_vehicles_right_lane
+                    )
+                    vehicle.setVelocity([0, speed, 0, 0, 0, 0])
 
         # -------- Vehicle pose publishing (always) --------
         if sim_t - self.last_vehicle_pub >= self.vehicle_pub_interval:
@@ -167,6 +182,13 @@ class SupervisorNode(Node):
                     self.pub_vehicles_opposite_pose[i].publish(
                         Pose2D(x=pos[0], y=pos[1], theta=0.0)
                     )
+                    
+            for i, vehicle in enumerate(self.vehicles_transverse):
+                if vehicle:
+                    pos = vehicle.getPosition()
+                    self.pub_vehicles_transverse_pose[i].publish(
+                        Pose2D(x=pos[0], y=pos[1], theta=0.0)
+                    )     
 
         # -------- BMW pose (always) --------
         if sim_t - self.last_bmw_pub >= self.bmw_pub_interval:

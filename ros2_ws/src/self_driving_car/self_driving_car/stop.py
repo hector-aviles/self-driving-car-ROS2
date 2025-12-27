@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This node stops the car by killing the nodes that control the car
+This node stops the car by killing the processes that control the car
 and setting the car speed to 0.
 """
 import subprocess
@@ -13,19 +13,23 @@ class StopNode(Node):
     def __init__(self):
         super().__init__('stop')
 
+        # -------------------------------------------------
+        # Internal state
+        # -------------------------------------------------
         self.success = True
         self.goal_reached = False
         self.shutdown_started = False
 
-        #self.get_logger().info("INITIALIZING STOP NODE...")
-
+        # -------------------------------------------------
         # Subscribers
+        # -------------------------------------------------
         self.create_subscription(
             Bool,
             "/BMW/success",
             self.callback_success,
             10
         )
+
         self.create_subscription(
             Bool,
             "/BMW/goal_reached",
@@ -33,8 +37,16 @@ class StopNode(Node):
             10
         )
 
+        # -------------------------------------------------
         # Publisher
+        # -------------------------------------------------
         self.pub_speed = self.create_publisher(Float64, "/BMW/speed", 1)
+
+        self.get_logger().info("STOP node initialized")
+
+    # =====================================================
+    # Callbacks
+    # =====================================================
 
     def callback_success(self, msg):
         self.success = msg.data
@@ -42,24 +54,34 @@ class StopNode(Node):
     def callback_goal_reached(self, msg):
         self.goal_reached = msg.data
 
+    # =====================================================
+    # Actions
+    # =====================================================
+
     def stop_motion(self):
+        """Immediately stop the vehicle"""
         msg = Float64()
         msg.data = 0.0
         self.pub_speed.publish(msg)
+        self.get_logger().info("STOP: Speed set to 0")
 
-    def kill_ros2_node(self, node_name):
+    def kill_process_by_name(self, name):
+        """
+        Kill a ROS 2 node by killing its process.
+        This is the only reliable way in ROS 2.
+        """
         try:
-            result = subprocess.run(
-                ['ros2', 'node', 'list'],
-                capture_output=True,
-                text=True,
-                timeout=3.0
+            subprocess.run(
+                ['pkill', '-f', name],
+                timeout=2.0
             )
-            if node_name in result.stdout:
-                subprocess.run(['ros2', 'node', 'kill', node_name], timeout=3.0)
-                self.get_logger().info(f"Killed node: {node_name}")
+            self.get_logger().info(f"STOP: Killed process containing '{name}'")
         except Exception as e:
-            self.get_logger().warn(f"Failed killing {node_name}: {e}")
+            self.get_logger().warn(f"STOP: Failed killing '{name}': {e}")
+
+    # =====================================================
+    # Main logic
+    # =====================================================
 
     def update(self):
         """Main logic called every spin_once"""
@@ -68,34 +90,39 @@ class StopNode(Node):
 
         if (not self.success) or self.goal_reached:
             self.shutdown_started = True
-            self.get_logger().info("STOP: Starting shutdown sequence")
+            self.get_logger().warn("STOP: Starting shutdown sequence")
 
-            # Always stop motion first
+            # 1) Always stop motion first
             self.stop_motion()
 
-            nodes_to_kill = [
-                '/behavior_selection',
-                '/behaviors',
-                '/lane_identification',
-                '/lane_detector_canny_hough',
-                '/obstacle_detector',
-                '/latent_collision_detector',
-                '/lane_tracking_control_P'
+            # 2) Kill controller processes
+            processes_to_kill = [
+                'behavior_selection',
+                'behaviors',
+                'lane_identification',
+                'lane_detector_canny_hough',
+                'obstacle_detector',
+                'latent_collision_detector',
+                'lane_tracking_control_P',
+                'action_policy'
             ]
 
-            for node in nodes_to_kill:
-                self.kill_ros2_node(node)
+            for proc in processes_to_kill:
+                self.kill_process_by_name(proc)
 
-            self.get_logger().info("STOP: Shutdown completed")
-            rclpy.shutdown()
+            self.get_logger().warn("STOP: Shutdown sequence completed")
 
+
+# =========================================================
+# MAIN (single shutdown point)
+# =========================================================
 
 def main():
     rclpy.init()
     node = StopNode()
 
     try:
-        while rclpy.ok():
+        while rclpy.ok() and not node.shutdown_started:
             rclpy.spin_once(node, timeout_sec=0.01)
             node.update()
     except KeyboardInterrupt:

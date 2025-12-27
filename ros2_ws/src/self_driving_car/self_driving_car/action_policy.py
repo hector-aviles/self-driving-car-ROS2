@@ -168,7 +168,6 @@ class ActionPolicy(BaseEstimator, ClassifierMixin):
         self.actions[126] = "change_to_right"
         self.actions[127] = "cruise"
 
-
     def fit(self, X, y=None):
         return self
 
@@ -178,6 +177,7 @@ class ActionPolicy(BaseEstimator, ClassifierMixin):
         data = X[cols].to_numpy().astype(bool).astype(int)
         powers = 2 ** np.arange(7)
         indices = data @ powers
+        #print(f"Powers: {powers} Index: {indices}", flush = True)
         return np.array(self.actions)[indices]
 
 
@@ -327,17 +327,21 @@ class ActionPolicyNode(Node):
             self.pub_action.publish(String(data=action))
 
             if action == "cruise":
+                #pass
                 self.publish_bool(self.pub_cruise, True)
 
             elif action == "keep":
+                #pass
                 self.publish_bool(self.pub_keep_distance, True)
 
             elif action == "change_to_left" and not self.executing_lane_change:
+                #pass
                 self.get_logger().info("Starting lane change LEFT")
                 self.executing_lane_change = True
                 self.publish_bool(self.pub_change_lane_left, True)
 
             elif action == "change_to_right" and not self.executing_lane_change:
+                #pass
                 self.get_logger().info("Starting lane change RIGHT")
                 self.executing_lane_change = True
                 self.publish_bool(self.pub_change_lane_right, True)

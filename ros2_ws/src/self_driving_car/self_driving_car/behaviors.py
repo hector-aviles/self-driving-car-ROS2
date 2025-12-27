@@ -57,10 +57,15 @@ class BehaviorsNode(Node):
         self.lane_rho_r = 0.0
         self.lane_theta_r = 0.0
 
-        self.goal_rho_l = 370.0
-        self.goal_theta_l = 2.4
-        self.goal_rho_r = 430.0
-        self.goal_theta_r = 0.895
+        #self.goal_rho_l = 370.0
+        #self.goal_theta_l = 2.4
+        #self.goal_rho_r = 430.0
+        #self.goal_theta_r = 0.895
+
+        self.goal_rho_l   = 481.0
+        self.goal_theta_l = 2.085
+        self.goal_rho_r   = 466.0
+        self.goal_theta_r = 0.99
 
         # ---------------- State ----------------
         self.state = SM_INIT

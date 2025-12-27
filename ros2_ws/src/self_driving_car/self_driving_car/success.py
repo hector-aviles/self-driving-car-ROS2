@@ -53,7 +53,7 @@ class SuccessNode(Node):
     # =====================================================
 
     def callback_accelerometer(self, msg):
-        threshold = 200.0
+        threshold = 50.0
 
         x2 = msg.linear_acceleration.x
         y2 = msg.linear_acceleration.y
@@ -69,6 +69,9 @@ class SuccessNode(Node):
                         (y2 - self.y1)**2 +
                         (z2 - self.z1)**2) ** 0.5
 
+                #self.get_logger().info(
+                #        f"Diff accel = {diff:.2f}"
+                #)
                 if diff > threshold:
                     self.success = False
                     self.get_logger().warn(
