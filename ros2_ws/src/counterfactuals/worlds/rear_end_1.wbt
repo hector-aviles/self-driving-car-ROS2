@@ -1,0 +1,118 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3Simple.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 64
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.273942768539587 0.43999469842896655 -0.8551958985631707 1.2585773584407056
+  position -5.151854742462447 99.3227570777267 77.2878502065519
+}
+StraightRoadSegment {
+  width 11
+  length 300
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 -6.665058345365573e-11
+  hidden position2_0_0 -2.9141871015515686e-05
+  hidden position_0_1 1.1577459226590047e-10
+  hidden position2_0_1 -1.9994021095651032e-05
+  hidden position_0_2 0.2044398341726512
+  hidden position_0_3 -3.707055008772686
+  hidden rotation_1 -3.332529172674071e-11 0.9999999999973845 2.287107214676726e-06 2.9141871446447543e-05
+  hidden rotation_2 -5.788729613197977e-11 -0.9999999999832352 -5.790460643521337e-06 1.9994026935677025e-05
+  hidden rotation_3 0 -1 0 0.20443983417265163
+  hidden rotation_4 0 -0.9999999999999999 0 3.707055008772686
+  translation 15.280290727349305 -2.753739138834651 0.316928079631108
+  rotation -0.0019622997826190696 -0.48840426050002506 -0.8726152804672783 0.009186745034138882
+  color 0.643137 0 0
+  name "BMW_X5"
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    Lidar {
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      defaultFrequency 10
+      numberOfLayers 32
+      minRange 0.05
+      maxRange 60
+      noise 0.02
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+DEF vehicle_1 LincolnMKZSimple {
+  translation 63.87050941009168 -4.11 0.45
+  color 0.2 0.5 0.8
+  name "vehicle_1"
+}
+DEF vehicle_2 TeslaModel3Simple {
+  translation 26.702670215822643 2.51 0.4
+  color 1 0.5 0
+  name "vehicle_2"
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

@@ -1,0 +1,127 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3Simple.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 64
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.22978520576068914 0.3706177637483133 -0.899911791459428 1.2065602026331288
+  position 2.476990971289993 91.94811890035884 69.04247201887163
+}
+StraightRoadSegment {
+  width 11
+  length 300
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 1.0258587373081655e-10
+  hidden position2_0_0 0.01994544988231797
+  hidden position_0_1 1.408153240914698e-10
+  hidden position2_0_1 0.01996304980075322
+  hidden position_0_2 0.09734283475238702
+  hidden position_0_3 0.09730654247147393
+  hidden linearVelocity_0 0.00018806370781600996 -1.8525926765444766e-06 0.016160956837388066
+  hidden angularVelocity_0 9.090973060144238e-06 0.0010340554297473374 2.1191100839519586e-08
+  hidden rotation_1 -6.680185036187571e-11 -1 -1.1299271811177089e-09 0.027784392075389654
+  hidden linearVelocity_1 0.0003953402742770286 -3.5275981656631454e-06 0.014867706472130513
+  hidden angularVelocity_1 9.100709218709608e-06 0.0010391548409792485 2.1641466673498897e-08
+  hidden rotation_2 4.6720350102961675e-11 1 -8.97085978048207e-09 0.02779358409563481
+  hidden linearVelocity_2 0.0003959998510921547 -3.5337836948192294e-06 0.014866687709337342
+  hidden angularVelocity_2 9.103315033970316e-06 0.0010395403867767665 2.173999423440999e-08
+  hidden rotation_3 0 -1 0 0.3544718090101009
+  hidden linearVelocity_3 0.0001744741678650883 -1.650536924460299e-06 0.024631767354881522
+  hidden angularVelocity_3 4.590011922788425e-06 0.0004670190000676174 2.1077523522009612e-08
+  hidden rotation_4 0 -0.9999999999999999 0 3.557582484362606
+  hidden linearVelocity_4 0.00017451055482258217 -1.6534280170142996e-06 0.024630175457762696
+  hidden angularVelocity_4 4.5914322536161705e-06 0.00046711637279028443 2.1095200358567703e-08
+  translation 70.91661999059272 2.329032763054246 0.3032255962961668
+  rotation -0.0023658962846123334 -0.5864054165233116 -0.8100142529652744 0.009869585399510179
+  color 0.643137 0 0
+  name "BMW_X5"
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    Lidar {
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      numberOfLayers 32
+      minRange 0.05
+      maxRange 60
+      noise 0.02
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+DEF vehicle_1 LincolnMKZSimple {
+  translation 25.939763949546496 -2.39 0.45
+  color 0.2 0.5 0.8
+  name "vehicle_1"
+}
+DEF vehicle_2 TeslaModel3Simple {
+  translation 5.289877868218738 -2.41 0.4
+  color 1 0.5 0
+  name "vehicle_2"
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}
