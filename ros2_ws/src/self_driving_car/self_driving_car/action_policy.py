@@ -198,8 +198,8 @@ class ActionPolicyNode(Node):
         self.free_SE = True
         self.curr_lane = True
         self.change_lane_finished = False
-
         self.executing_lane_change = False
+        self.last_action = None
 
         # ---- Speeds ----
         self.vel_vehicles_left_lane = float(speed_left)
@@ -221,24 +221,6 @@ class ActionPolicyNode(Node):
         # ---- Publishers ----
         self.pub_policy_started = self.create_publisher(
             Empty, "/BMW/policy/started", qos_latched)
-
-        self.pub_cruise = self.create_publisher(
-            Bool, "/BMW/cruise/enable", qos_latched)
-
-        self.pub_keep_distance = self.create_publisher(
-            Bool, "/BMW/keep/enable", qos_latched)
-
-        self.pub_change_lane_left = self.create_publisher(
-            Bool, "/BMW/change_to_left/started", qos_latched)
-
-        self.pub_change_lane_right = self.create_publisher(
-            Bool, "/BMW/change_to_right/started", qos_latched)
-
-        self.pub_swerve_left = self.create_publisher(
-            Bool, "/BMW/swerve_left/started", qos_latched)
-
-        self.pub_swerve_right = self.create_publisher(
-            Bool, "/BMW/swerve_right/started", qos_latched)
 
         self.pub_action = self.create_publisher(
             String, "/BMW/action", qos_latched)
@@ -329,36 +311,13 @@ class ActionPolicyNode(Node):
             self.get_logger().info(f"Predicted action: {action}")
 
             # ---- Execute ----
-            self.pub_action.publish(String(data=action))
+            if action != self.last_action:
+               self.pub_action.publish(String(data=action))
+               self.last_action = action
 
-            if action == "cruise":
-                #pass
-                self.publish_bool(self.pub_cruise, True)
-
-            elif action == "keep":
-                #pass
-                self.publish_bool(self.pub_keep_distance, True)
-
-            elif action == "change_to_left" and not self.executing_lane_change:
-                #pass
-                self.get_logger().info("Starting lane change LEFT")
+            if action in ["change_to_left", "change_to_right"]:
                 self.executing_lane_change = True
-                self.publish_bool(self.pub_change_lane_left, True)
-
-            elif action == "change_to_right" and not self.executing_lane_change:
-                #pass
-                self.get_logger().info("Starting lane change RIGHT")
-                self.executing_lane_change = True
-                self.publish_bool(self.pub_change_lane_right, True)
-
-            elif action == "swerve_left" and not self.executing_lane_change:
-                #pass
-                self.publish_bool(self.pub_swerve_left, True)
-
-            elif action == "swerve_right" and not self.executing_lane_change:
-                #pass
-                self.publish_bool(self.pub_swerve_right, True)
-
+                
             self._sleep_remaining(start)
 
     def _sleep_remaining(self, start):
