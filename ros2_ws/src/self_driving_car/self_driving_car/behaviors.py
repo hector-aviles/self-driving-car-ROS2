@@ -192,7 +192,7 @@ class BehaviorsNode(Node):
 
         elif self.state == SM_WAITING_FOR_NEW_TASK:
             self.finished_published = False
-
+            
             if self.action == "cruise":
                 self.state = SM_CRUISE
                 self.action = None
@@ -229,40 +229,36 @@ class BehaviorsNode(Node):
 
         elif self.state == SM_CRUISE:
             speed, steering = self.calculate_control()
-            if self.action != "cruise":
+            if self.action and self.action != "cruise":
                 self.state = SM_WAITING_FOR_NEW_TASK
 
         elif self.state == SM_KEEP:
             speed, steering = self.calculate_control(self.dist_to_car)
-            if self.action != "keep":
+            if self.action and self.action != "keep":
                 self.state = SM_WAITING_FOR_NEW_TASK
 
         elif self.state == SM_CHANGE_LEFT_1:
             speed = self.max_speed
             steering = self.turning_steering(1.2, 2.9, speed)
             if self.current_y > -0.7:
-                #self.get_logger().info(f"LEFT 1st condition Y: {self.current_y}")
                 self.state = SM_CHANGE_LEFT_2
 
         elif self.state == SM_CHANGE_LEFT_2:
             speed = self.max_speed
             steering = self.turning_steering(-1.2, 2.9, speed)
             if self.current_y > 1.0 and abs(self.current_a) < 0.2:
-                #self.get_logger().info(f"LEFT 2nd condition Y: {self.current_y} A: {self.current_a}") 
                 self.finish_lane_change()
 
         elif self.state == SM_CHANGE_RIGHT_1:
             speed = self.max_speed
             steering = self.turning_steering(-1.2, 2.9, speed)
             if self.current_y < 0.7:
-                #self.get_logger().info(f"RIGHT 1st condition Y: {self.current_y}")
                 self.state = SM_CHANGE_RIGHT_2
 
         elif self.state == SM_CHANGE_RIGHT_2:
             speed = self.max_speed
             steering = self.turning_steering(1.2, 2.9, speed)
             if self.current_y < -1.0 and abs(self.current_a) < 0.2:
-                #self.get_logger().info(f"RIGHT 2nd condition Y: {self.current_y} A: {self.current_a}")
                 self.finish_lane_change()
                 
         #
@@ -272,7 +268,7 @@ class BehaviorsNode(Node):
             self.get_logger().info("Swerving left")
             speed, steering = self.calculate_control()
             self.dist_to_car = None            
-            if self.action != "swerve_left":
+            if self.action and self.action != "swerve_left":
                 self.set_nominal_params()
                 self.state = SM_WAITING_FOR_NEW_TASK
 
@@ -283,14 +279,17 @@ class BehaviorsNode(Node):
             self.get_logger().info("Swerving right")
             speed, steering = self.calculate_control()
             self.dist_to_car = None
-            if self.action != "swerve_right":
+            if self.action and self.action != "swerve_right":
                 self.set_nominal_params()
                 self.state = SM_WAITING_FOR_NEW_TASK
                               
         else:
             self.get_logger().error(f"invalid STATE {self.state}")
             self.state = SM_WAITING_FOR_NEW_TASK
-
+        '''
+        if self.flag:
+           self.get_logger().info(f"self.flag: {self.flag} self.action: {self.action} self.state: {self.state} speed: {speed}")
+        '''   
         self.pub_speed.publish(Float64(data=float(speed)))
         self.pub_steering.publish(Float64(data=float(steering)))
 
