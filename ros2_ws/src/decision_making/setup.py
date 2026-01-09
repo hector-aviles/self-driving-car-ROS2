@@ -2,7 +2,7 @@ import os
 from setuptools import setup
 from glob import glob
 
-package_name = 'simple'
+package_name = 'decision_making'
 
 setup(
     name=package_name,
@@ -15,30 +15,12 @@ setup(
             'share/ament_index/resource_index/packages',
             ['resource/' + package_name]
         ),
-        
+
         # package.xml
         (
             'share/' + package_name,
             ['package.xml']
-        ),
-
-        # Launch files
-        (
-            'share/' + package_name + '/launch',
-            glob('launch/*') # glob('launch/*.py')
-        ),
-
-        # Worlds
-        ('share/' + package_name + '/worlds', glob('worlds/*.wbt')),
-
-        # Textures
-        (
-            'share/' + package_name + '/worlds/textures',
-            glob('worlds/textures/*')
-        ),
-        
-        # Supervisor
-        ('share/' + package_name + '/controllers/supervisor', glob('controllers/supervisor/*')),        
+        )
 
     ],
 
@@ -46,13 +28,15 @@ setup(
     zip_safe=True,
     maintainer='Héctor Avilés',
     maintainer_email='havilesa@upv.edu.mx',
-    description='Simple Webots + ROS2 package',
+    description='Decision making module for the self-driving car',
     license='Apache License 2.0',
     tests_require=['pytest'],
 
     entry_points={
-        'console_scripts': [
-        ],
+      'console_scripts': [
+         'action_policy = decision_making.action_policy:main',
+         'counterfactuals = decision_making.counterfactuals:main'  
+      ],
     },
 )
 

@@ -61,8 +61,7 @@ setup(
          'goal_reached = self_driving_car.goal_reached:main',
          'success = self_driving_car.success:main',
          'stop = self_driving_car.stop:main',
-         'latent_collision_detector=self_driving_car.latent_collision_detector:main',
-         'action_policy = self_driving_car.action_policy:main'  
+         'latent_collision_detector=self_driving_car.latent_collision_detector:main'  
       ],
     },
 )

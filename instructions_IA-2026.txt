@@ -29,22 +29,22 @@ sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projec
 ######################
 
 ros2 launch self_driving_car head_on_1.py
-ros2 run self_driving_car action_policy 0 3 7
+ros2 run decision_making action_policy 0 3 7
 
 ros2 launch self_driving_car head_on_2.py
-ros2 run self_driving_car action_policy 3 2 4
+ros2 run decision_making action_policy 3 2 4
 
 ros2 launch self_driving_car head_on_3.py
-ros2 run self_driving_car action_policy -3 4 7
+ros2 run decision_making action_policy -3 4 7
 
 ros2 launch self_driving_car side_swipe_1.py # (No hay choque)
-ros2 run self_driving_car action_policy 0 9 0
+ros2 run decision_making action_policy 0 9 0
 
 ros2 launch self_driving_car side_swipe_2.py # (No hay choque)
-ros2 run self_driving_car action_policy 6 0 0
+ros2 run decision_making action_policy 6 0 0
 
 ros2 launch self_driving_car t_bone_1.py
-ros2 run self_driving_car action_policy 0 -7 0 
+ros2 run decision_making action_policy 0 -7 0 
 
 ros2 launch self_driving_car t_bone_2.py
-ros2 run self_driving_car action_policy 0 7 0
+ros2 run decision_making action_policy 0 7 0

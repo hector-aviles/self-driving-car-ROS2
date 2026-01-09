@@ -77,8 +77,8 @@ class BehaviorsNode(Node):
 
         # Nominal lane parameters
         self.nominal_params = dict(
-          k_rho = 0.001
-          k_theta = 0.01
+          k_rho = 0.001,
+          k_theta = 0.01,
           max_speed=30.0,
           goal_rho_l=481.0,
           goal_theta_l=2.085,
