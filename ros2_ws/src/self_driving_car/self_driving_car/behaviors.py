@@ -54,10 +54,8 @@ class BehaviorsNode(Node):
 
         # ---------------- Parameters ----------------
         self.max_speed = 30.0
-        #self.k_rho = 0.001
-        #self.k_theta = 0.01
-        self.k_rho = 0.002
-        self.k_theta = 0.02        
+        self.k_rho = 0.001
+        self.k_theta = 0.01
         self.k_keeping = 10.0
         self.dist_to_car = 30.0
 
@@ -79,6 +77,8 @@ class BehaviorsNode(Node):
 
         # Nominal lane parameters
         self.nominal_params = dict(
+          k_rho = 0.001
+          k_theta = 0.01
           max_speed=30.0,
           goal_rho_l=481.0,
           goal_theta_l=2.085,
@@ -120,6 +120,8 @@ class BehaviorsNode(Node):
         self.get_logger().info("Behaviors node initialized")
         
     def set_nominal_params(self):
+       self.k_rho = self.nominal_params["k_rho"]
+       self.k_theta = self.nominal_params["k_theta"]
        self.max_speed     = self.nominal_params["max_speed"]
        self.goal_rho_l    = self.nominal_params["goal_rho_l"]
        self.goal_theta_l = self.nominal_params["goal_theta_l"]
@@ -212,6 +214,8 @@ class BehaviorsNode(Node):
             elif self.action == "swerve_left":
                 self.state = SM_SWERVE_LEFT
                 self.max_speed = 30
+                self.k_rho = 0.002
+                self.k_theta = 0.02    
                 self.goal_rho_l   = 385.0
                 self.goal_theta_l = 2.37
                 self.goal_rho_r   = 508.0
@@ -220,6 +224,8 @@ class BehaviorsNode(Node):
                 
             elif self.action == "swerve_right":
                 self.state = SM_SWERVE_RIGHT
+                self.k_rho = 0.002
+                self.k_theta = 0.02                    
                 self.max_speed = 30
                 self.goal_rho_l   = 517.0
                 self.goal_theta_l = 1.96
@@ -286,10 +292,7 @@ class BehaviorsNode(Node):
         else:
             self.get_logger().error(f"invalid STATE {self.state}")
             self.state = SM_WAITING_FOR_NEW_TASK
-        '''
-        if self.flag:
-           self.get_logger().info(f"self.flag: {self.flag} self.action: {self.action} self.state: {self.state} speed: {speed}")
-        '''   
+
         self.pub_speed.publish(Float64(data=float(speed)))
         self.pub_steering.publish(Float64(data=float(steering)))
 

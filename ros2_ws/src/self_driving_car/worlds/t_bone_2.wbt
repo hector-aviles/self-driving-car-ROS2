@@ -150,10 +150,10 @@ DEF BMW_X5 BmwX5 {
   completeInterior FALSE
   shifter FALSE
 }
-DEF vehicle_transverse_1 RangeRoverSportSVRSimple {
+DEF vehicle_1 RangeRoverSportSVRSimple {
   translation 83.3717 -39.781929004620224 0.4
   rotation 0 0 1 1.5708
-  name "DEF vehicle_transverse_1"
+  name "vehicle_1"
 }
 Robot {
   controller "supervisor"

@@ -28,8 +28,6 @@ class SupervisorNode(Node):
 
         # ---------------- Vehicles ----------------
         self.vehicles = [robot.getFromDef(f'vehicle_{i+1}') for i in range(MAX_VEHICLES)]
-        self.vehicles_opposite = [robot.getFromDef(f'vehicle_opposite_{i+1}') for i in range(MAX_VEHICLES)]
-        self.vehicles_transverse = [robot.getFromDef(f'vehicle_transverse_{i+1}') for i in range(MAX_VEHICLES)]
 
         self.bmw = robot.getFromDef('BMW_X5')
         self.citroenczero = robot.getFromDef('CitroenCZero_1')
@@ -42,16 +40,6 @@ class SupervisorNode(Node):
 
         self.pub_vehicles_pose = [
             self.create_publisher(Pose2D, f'/vehicle_{i+1}/pose', 10)
-            for i in range(MAX_VEHICLES)
-        ]
-
-        self.pub_vehicles_opposite_pose = [
-            self.create_publisher(Pose2D, f'/vehicle_opposite_{i+1}/pose', 10)
-            for i in range(MAX_VEHICLES)
-        ]
-
-        self.pub_vehicles_transverse_pose = [
-            self.create_publisher(Pose2D, f'/vehicle_transverse_{i+1}/pose', 10)
             for i in range(MAX_VEHICLES)
         ]
 
@@ -99,19 +87,29 @@ class SupervisorNode(Node):
 
     def initialize_vehicle_positions(self):
         self.get_logger().info('Initializing vehicle coordinates...')
-
-        for group, axis in [
-            (self.vehicles, 0),              # X perturbation
-            (self.vehicles_opposite, 0),     # X perturbation
-            (self.vehicles_transverse, 1)    # Y perturbation
-        ]:
-            for vehicle in group:
-                if vehicle:
-                    field = vehicle.getField("translation")
-                    pos = field.getSFVec3f()
-                    pos[axis] += np.random.uniform(-2.0, 2.0)
-                    field.setSFVec3f(pos)
-                    vehicle.resetPhysics()
+    
+        for vehicle in self.vehicles:
+            if not vehicle:
+                continue
+    
+            field = vehicle.getField("translation")
+            pos = field.getSFVec3f()
+    
+            orient = vehicle.getOrientation()
+            yaw = math.atan2(orient[3], orient[0])
+            yaw = math.atan2(math.sin(yaw), math.cos(yaw))  # normalize to (-pi, pi]
+    
+            # Decide longitudinal axis based on heading
+            # North / South -> move along x
+            if abs(yaw) < 0.2 or abs(abs(yaw) - math.pi) < 0.2:
+                pos[0] += np.random.uniform(-2.0, 2.0)  # x-axis
+    
+            # East / West -> move along y
+            elif abs(abs(yaw) - math.pi / 2) < 0.2:
+                pos[1] += np.random.uniform(-2.0, 2.0)  # y-axis
+    
+            field.setSFVec3f(pos)
+            vehicle.resetPhysics()
 
     # -----------------------------------------------------
 
@@ -137,35 +135,31 @@ class SupervisorNode(Node):
 
             for vehicle in self.vehicles:
                 if vehicle:
-                    y = vehicle.getPosition()[1]
-                    speed = (
-                        self.speed_vehicles_left_lane
-                        if y > 0.0 else
-                        self.speed_vehicles_right_lane
-                    )
-                    vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
-
-            for vehicle in self.vehicles_opposite:
-                if vehicle:
-                    y = vehicle.getPosition()[1]
-                    speed = (
-                        self.speed_vehicles_left_lane
-                        if y > 0.0 else
-                        self.speed_vehicles_right_lane
-                    )
-                    vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
-
-            for vehicle in self.vehicles_transverse:
-                if vehicle:
                     x = vehicle.getPosition()[0]
-                    # TODO: Change this
-                    speed = (
-                        self.speed_vehicles_left_lane
-                        if x > 80.0 else 
-                        self.speed_vehicles_right_lane
-                    )
-                    self.get_logger().info(f'x: {x} speed: {speed}')
-                    vehicle.setVelocity([0, speed, 0, 0, 0, 0])
+                    y = vehicle.getPosition()[1]
+                    orient = vehicle.getOrientation()
+                    yaw = self.normalize_angle(math.atan2(orient[3], orient[0]))
+
+                    heading = self.heading(yaw)
+                    
+                    # Vehicles heading northbound or southbound
+                    if heading in ("north", "south"):
+                        speed = (
+                            self.speed_vehicles_left_lane
+                            if y > 0.0 else
+                            self.speed_vehicles_right_lane
+                        )
+                    # Vehicles heading eastbound or westbound                    
+                    elif heading in ("east", "west"):
+                        speed = (
+                            self.speed_vehicles_left_lane
+                            if x > 80.0 else
+                            self.speed_vehicles_right_lane
+                        )
+                    else:
+                        speed = 0.0  # safety default
+
+                    vehicle.setVelocity([speed, 0, 0, 0, 0, 0])
 
         # -------- Vehicle pose publishing (always) --------
         if sim_t - self.last_vehicle_pub >= self.vehicle_pub_interval:
@@ -177,20 +171,6 @@ class SupervisorNode(Node):
                     self.pub_vehicles_pose[i].publish(
                         Pose2D(x=pos[0], y=pos[1], theta=0.0)
                     )
-
-            for i, vehicle in enumerate(self.vehicles_opposite):
-                if vehicle:
-                    pos = vehicle.getPosition()
-                    self.pub_vehicles_opposite_pose[i].publish(
-                        Pose2D(x=pos[0], y=pos[1], theta=0.0)
-                    )
-                    
-            for i, vehicle in enumerate(self.vehicles_transverse):
-                if vehicle:
-                    pos = vehicle.getPosition()
-                    self.pub_vehicles_transverse_pose[i].publish(
-                        Pose2D(x=pos[0], y=pos[1], theta=0.0)
-                    )     
 
         # -------- BMW pose (always) --------
         if sim_t - self.last_bmw_pub >= self.bmw_pub_interval:
@@ -227,7 +207,21 @@ class SupervisorNode(Node):
         self.pub_citroenczero_pose.publish(
             Pose2D(x=pos[0], y=pos[1], theta=theta)
         )
-
+    
+    # −pi < yaw ≤ pi
+    def normalize_angle(self, a):
+        return math.atan2(math.sin(a), math.cos(a))    
+        
+    def heading(self, yaw):
+        if -0.1 <= yaw <= 0.1:
+           return "north"
+        elif abs(abs(yaw) - math.pi) < 0.1:
+           return "south"
+        elif -1.65 <= yaw <= -1.52:
+           return "east"
+        elif 1.52 <= yaw <= 1.65:
+           return "west"
+        return "unknown"
 
 # -----------------------------------------------------
 

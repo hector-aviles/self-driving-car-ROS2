@@ -142,10 +142,10 @@ DEF BMW_X5 BmwX5 {
   controller "bmw_x5_controller"
   name "BMW_X5"
 }
-DEF vehicle_transverse_2 ToyotaPriusSimple {
+DEF vehicle_1 ToyotaPriusSimple {
   translation 77.2005 52.5395 0.4
   rotation 0 0 1 -1.5707953071795862
-  name "DEF vehicle_transverse_2"
+  name "vehicle_1"
 }
 Robot {
   controller "supervisor"
