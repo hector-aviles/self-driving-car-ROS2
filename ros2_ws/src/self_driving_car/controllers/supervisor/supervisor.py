@@ -157,12 +157,14 @@ class SupervisorNode(Node):
 
             for vehicle in self.vehicles_transverse:
                 if vehicle:
-                    y = vehicle.getPosition()[1]
+                    x = vehicle.getPosition()[0]
+                    # TODO: Change this
                     speed = (
                         self.speed_vehicles_left_lane
-                        if y > 0.0 else
+                        if x > 80.0 else 
                         self.speed_vehicles_right_lane
                     )
+                    self.get_logger().info(f'x: {x} speed: {speed}')
                     vehicle.setVelocity([0, speed, 0, 0, 0, 0])
 
         # -------- Vehicle pose publishing (always) --------

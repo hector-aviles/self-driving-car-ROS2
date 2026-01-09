@@ -98,7 +98,7 @@ class BehaviorsNode(Node):
         # ---------------- Subscribers ----------------
         
         self.create_subscription(String, "/BMW/action", 
-                                 self.cb_action, 10)
+                                 self.cb_action, qos_latched)
         self.create_subscription(Float64MultiArray, "/BMW/demo/left_lane",
                                  self.cb_left_lane, 10)
         self.create_subscription(Float64MultiArray, "/BMW/demo/right_lane",
