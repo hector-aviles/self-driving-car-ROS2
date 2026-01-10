@@ -228,6 +228,7 @@ class CounterfactualsNode(Node):
         self.free_N = self.free_E = self.free_NE = self.free_NW = True
         self.free_SE = self.free_SW = self.free_W = True
         self.latent_collision = False
+        self.abort = False
         
         self.change_lane_finished = False
         self.prev_obs = None
@@ -289,7 +290,13 @@ class CounterfactualsNode(Node):
     def cb_free_SE(self, msg): self.free_SE = msg.data
     def cb_curr_lane(self, msg): self.curr_lane = msg.data
     def cb_change_lane_finished(self, msg): self.change_lane_finished = msg.data
-    def cb_latent_collision(self, msg): self.latent_collision = msg.data
+    def cb_latent_collision(self, msg): 
+      self.latent_collision = msg.data
+      if self.latent_collision:
+         # ---- Publish abort ----
+         self.pub_abort.publish(
+            Bool(data=self.latent_collision)
+         )
 
     # ---------------- Publish action ----------------
    
