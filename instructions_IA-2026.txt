@@ -21,11 +21,9 @@ sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projec
 
 4) Execute 30 runs per world
  
-# Three known worlds and y three unknown worlds 
-
 
 ######################   
-# CART classifier, 6 worlds:
+# Action policy:
 ######################
 
 ros2 launch self_driving_car head_on_1.py
@@ -48,3 +46,28 @@ ros2 run decision_making action_policy 0 -7 0
 
 ros2 launch self_driving_car t_bone_2.py
 ros2 run decision_making action_policy 0 7 0
+
+######################   
+# Counterfactuals:
+######################
+
+ros2 launch self_driving_car head_on_1.py
+ros2 run decision_making counterfactuals 0 3 7 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+ros2 launch self_driving_car head_on_2.py
+ros2 run decision_making counterfactuals 3 2 4 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+ros2 launch self_driving_car head_on_3.py
+ros2 run decision_making counterfactuals -3 4 7 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+ros2 launch self_driving_car side_swipe_1.py # (No hay choque)
+ros2 run decision_making counterfactuals 0 9 0 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+ros2 launch self_driving_car side_swipe_2.py # (No hay choque)
+ros2 run decision_making counterfactuals 6 0 0 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+ros2 launch self_driving_car t_bone_1.py
+ros2 run decision_making counterfactuals 0 -7 0 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv 
+
+ros2 launch self_driving_car t_bone_2.py
+ros2 run decision_making counterfactuals 0 7 0 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv

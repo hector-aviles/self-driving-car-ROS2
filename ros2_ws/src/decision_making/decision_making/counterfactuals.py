@@ -1,22 +1,16 @@
 #!/usr/bin/env python3
-"""
-ROS2 Action Policy with Counterfactual Reasoning
-
-- Deterministic hash-table policy (MDP-ProbLog)
-- DFA-based arbitration
-- Counterfactual CSV support
-- ROS2 Jazzy compatible
-"""
 
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, String, Empty, Float64
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
+from ament_index_python.packages import get_package_share_directory
 
+import os
+import time
+import sys
 import pandas as pd
 import numpy as np
-import sys
-import time
 
 # ---------------- QoS ----------------
 
@@ -28,11 +22,11 @@ qos_latched = QoSProfile(
 
 # ---------------- DFA states ----------------
 
-DFA_INIT = 0
+DFA_INIT   = 0
 DFA_POLICY = 10
 DFA_WHATIF = 20
 
-# ---------------- Hash-table Policy ----------------
+# ---------------- Policy ----------------
 
 class ActionPolicy:
 
@@ -167,37 +161,32 @@ class ActionPolicy:
         self.actions[126] = "change_to_right"
         self.actions[127] = "cruise"
 
-    def predict(self, X: pd.DataFrame):
+    def predict(self, obs: dict) -> str:
         cols = [
-            "curr_lane",
-            "free_E",
-            "free_NE",
-            "free_NW",
-            "free_SE",
-            "free_SW",
-            "free_W"
+            "curr_lane","free_E","free_NE","free_NW",
+            "free_SE","free_SW","free_W"
         ]
-        data = X[cols].astype(bool).astype(int).to_numpy()
-        powers = 2 ** np.arange(7)
-        idx = data @ powers
-        #print(f"Powers: {powers} Index: {idx}", flush = True)
-        return np.array(self.actions)[idx]
+        data = np.array([int(obs[c]) for c in cols])
+        idx = data @ (2 ** np.arange(7))
+        return self.actions[idx]
 
 # ---------------- Counterfactual logic ----------------
 
-def get_WhatIf_action(obs_state, prev_action, df_counterfactuals, df_choices):
+def get_WhatIf_action(obs, prev_action, df_counterfactuals, df_choices):
+
     filtered = df_counterfactuals[
         (df_counterfactuals["action"] == prev_action) &
-        (df_counterfactuals["curr_lane"] == obs_state["curr_lane"]) &
-        (df_counterfactuals["free_E"] == obs_state["free_E"]) &
-        (df_counterfactuals["free_NE"] == obs_state["free_NE"]) &
-        (df_counterfactuals["free_NW"] == obs_state["free_NW"]) &
-        (df_counterfactuals["free_SE"] == obs_state["free_SE"]) &
-        (df_counterfactuals["free_SW"] == obs_state["free_SW"]) &
-        (df_counterfactuals["free_W"] == obs_state["free_W"])
+        (df_counterfactuals["curr_lane"] == obs["curr_lane"]) &
+        (df_counterfactuals["free_E"] == obs["free_E"]) &
+        (df_counterfactuals["free_NE"] == obs["free_NE"]) &
+        (df_counterfactuals["free_NW"] == obs["free_NW"]) &
+        (df_counterfactuals["free_SE"] == obs["free_SE"]) &
+        (df_counterfactuals["free_SW"] == obs["free_SW"]) &
+        (df_counterfactuals["free_W"] == obs["free_W"])
     ]
 
     if filtered.empty:
+        print("ERROR: no matching rows found in counterfactuals. Default NA", flush=True)
         return "NA"
 
     alternatives = {
@@ -209,9 +198,9 @@ def get_WhatIf_action(obs_state, prev_action, df_counterfactuals, df_choices):
         "change_to_right": 0
     }
 
-    for a in filtered["iaction"]:
-        if a in alternatives:
-            alternatives[a] = 1
+    for iaction in filtered["iaction"]:
+        if iaction in alternatives:
+            alternatives[iaction] = 1
 
     row = df_choices[
         (df_choices[list(alternatives.keys())] ==
@@ -219,78 +208,159 @@ def get_WhatIf_action(obs_state, prev_action, df_counterfactuals, df_choices):
     ]
 
     if row.empty:
+        print("ERROR: no matching rows found in choices. publishing NA", flush=True)
         return "NA"
+    
+    return row["right_lane"].values[0] if obs["curr_lane"] else row["left_lane"].values[0]
 
-    return row["right_lane"].values[0] if obs_state["curr_lane"] else row["left_lane"].values[0]
 
 # ---------------- ROS2 Node ----------------
 
-class ActionPolicyNode(Node):
+class CounterfactualsNode(Node):
 
-    def __init__(self, speed_left, speed_right, speed_citroen, cf_path, choices_path):
-        super().__init__("action_policy")
+    def __init__(self, v_left, v_right, v_citroen,
+                 counterfactuals_file, choices_file):
+
+        super().__init__("counterfactuals_node")
 
         # ---- State ----
         self.curr_lane = True
         self.free_N = self.free_E = self.free_NE = self.free_NW = True
         self.free_SE = self.free_SW = self.free_W = True
         self.latent_collision = False
-
-        self.prev_obs_state = {}
-        self.prev_action = "cruise"
+        
+        self.change_lane_finished = False
+        self.prev_obs = None
+        self.prev_action = None
         self.prev_latent_collision = None
 
         self.dfa_state = DFA_INIT
 
         # ---- Policy ----
         self.model = ActionPolicy()
-        self.df_counterfactuals = pd.read_csv(cf_path)
-        self.df_choices = pd.read_csv(choices_path)
+
+        pkg_share = get_package_share_directory("decision_making")
+        base_path = os.path.join(pkg_share, "counterfactuals_model")
+
+        self.df_counterfactuals = pd.read_csv(os.path.join(base_path, counterfactuals_file))
+        self.df_choices = pd.read_csv(os.path.join(base_path, choices_file))
 
         # ---- Speeds ----
-        self.v_left = float(speed_left)
-        self.v_right = float(speed_right)
-        self.v_citroen = float(speed_citroen)
+        self.v_left = float(v_left)
+        self.v_right = float(v_right)
+        self.v_citroen = float(v_citroen)
 
         # ---- Publishers ----
-        self.pub_action = self.create_publisher(String, "/BMW/action", qos_latched)
+        self.pub_action = self.create_publisher(String, "/BMW/policy/action", qos_latched)
         self.pub_started = self.create_publisher(Empty, "/BMW/policy/started", qos_latched)
-
+        self.pub_abort = self.create_publisher(Bool, "/BMW/policy/abort", qos_latched)
         self.pub_speed_left = self.create_publisher(Float64, "/vehicles_left_lane/speed", qos_latched)
         self.pub_speed_right = self.create_publisher(Float64, "/vehicles_right_lane/speed", qos_latched)
-        self.pub_speed_ego = self.create_publisher(Float64, "/CitroenCZero/speed", qos_latched)
+        self.pub_speed_citroen = self.create_publisher(Float64, "/CitroenCZero/speed", qos_latched)
 
         # ---- Subscribers ----
-        self.create_subscription(Bool, "/BMW/current_lane", lambda m: setattr(self, "curr_lane", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_N", lambda m: setattr(self, "free_N", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_E", lambda m: setattr(self, "free_E", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_NE", lambda m: setattr(self, "free_NE", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_NW", lambda m: setattr(self, "free_NW", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_SE", lambda m: setattr(self, "free_SE", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_SW", lambda m: setattr(self, "free_SW", m.data), 10)
-        self.create_subscription(Bool, "/BMW/free_W", lambda m: setattr(self, "free_W", m.data), 10)
-        self.create_subscription(Bool, "/BMW/latent_collision", lambda m: setattr(self, "latent_collision", m.data), 10)
+        self.create_subscription(Bool, "/BMW/free_N", self.cb_free_N, 10)
+        self.create_subscription(Bool, "/BMW/free_NW", self.cb_free_NW, 10)
+        self.create_subscription(Bool, "/BMW/free_W", self.cb_free_W, 10)
+        self.create_subscription(Bool, "/BMW/free_SW", self.cb_free_SW, 10)
+        self.create_subscription(Bool, "/BMW/free_NE", self.cb_free_NE, 10)
+        self.create_subscription(Bool, "/BMW/free_E", self.cb_free_E, 10)
+        self.create_subscription(Bool, "/BMW/free_SE", self.cb_free_SE, 10)
+        self.create_subscription(Bool, "/BMW/current_lane", self.cb_curr_lane, 10)
+        self.create_subscription(
+            Bool,
+            "/BMW/change_lane/finished",
+            self.cb_change_lane_finished,
+            10
+        )
+        self.create_subscription(Bool, "/BMW/latent_collision",
+            self.cb_latent_collision, 
+            10
+        )
 
-        self.policy_period = 0.1  # 10 Hz
+    # ---------------- Callbacks ----------------
 
-    # ---------------- Main loop ----------------
+    def cb_free_N(self, msg): self.free_N = msg.data
+    def cb_free_NW(self, msg): self.free_NW = msg.data
+    def cb_free_W(self, msg): self.free_W = msg.data
+    def cb_free_SW(self, msg): self.free_SW = msg.data
+    def cb_free_NE(self, msg): self.free_NE = msg.data
+    def cb_free_E(self, msg): self.free_E = msg.data
+    def cb_free_SE(self, msg): self.free_SE = msg.data
+    def cb_curr_lane(self, msg): self.curr_lane = msg.data
+    def cb_change_lane_finished(self, msg): self.change_lane_finished = msg.data
+    def cb_latent_collision(self, msg): self.latent_collision = msg.data
 
+    # ---------------- Publish action ----------------
+   
+    def publish_action(
+        self,
+        action,
+        prev_action,
+        obs_state,
+        prev_obs_state,
+        model,
+        latent_collision,
+        prev_latent_collision
+    ):
+        # ---- Debug string ----
+        if model == "POLICY":
+            action_str = f"POLICY action={action}"
+        else:
+            action_str = f"WHATIF action={action}"
+    
+        obs_changed = (
+            prev_obs_state is None or
+            any(obs_state[k] != prev_obs_state[k] for k in obs_state)
+        )
+        collision_changed = latent_collision != prev_latent_collision
+        action_changed = action != prev_action
+    
+        if obs_changed or collision_changed or action_changed:
+            self.get_logger().info(
+                f"latent_collision={latent_collision} "
+                f"{obs_state} "
+                f"{action_str}"
+            )
+    
+            # ---- Publish action ----
+            self.pub_action.publish(
+                String(data=action)
+            )
+            
+    # ---------------- run ----------------        
+            
     def run(self):
+    
+        period = 0.1  # 10 Hz
+    
+        # Initial action
+        action = "cruise"
+        prev_action = "NA"
+    
+        prev_obs_state = None
+        prev_latent_collision = None
+    
         while rclpy.ok():
+    
             start = time.time()
+    
+            # ---- Spin callbacks ----
             rclpy.spin_once(self, timeout_sec=0.01)
-
+    
+            # ---- Periodic publications ----
             self.pub_started.publish(Empty())
             self.pub_speed_left.publish(Float64(data=self.v_left))
             self.pub_speed_right.publish(Float64(data=self.v_right))
-            self.pub_speed_ego.publish(Float64(data=self.v_citroen))
-
+            self.pub_speed_citroen.publish(Float64(data=self.v_citroen))
+    
+            # ---- Patch (faithful to ROS1) ----
             if self.curr_lane:
                 self.free_NE = self.free_N
             else:
                 self.free_NW = self.free_N
-
-            obs = {
+    
+            obs_state = {
                 "curr_lane": self.curr_lane,
                 "free_E": self.free_E,
                 "free_NE": self.free_NE,
@@ -299,41 +369,124 @@ class ActionPolicyNode(Node):
                 "free_SW": self.free_SW,
                 "free_W": self.free_W
             }
-
-            if obs != self.prev_obs_state or self.latent_collision != self.prev_latent_collision:
+    
+            obs_changed = (
+                prev_obs_state is None or
+                any(obs_state[k] != prev_obs_state[k] for k in obs_state)
+            )
+    
+            collision_changed = self.latent_collision != prev_latent_collision
+    
+            if not obs_changed and not collision_changed:
+                self._sleep(period, start)
+                continue
+    
+            # -------- DFA --------
+            if self.dfa_state == DFA_INIT:
                 if self.latent_collision:
-                    action = get_WhatIf_action(obs, self.prev_action, self.df_counterfactuals, self.df_choices)
+                    action = get_WhatIf_action(
+                        obs_state,
+                        action,
+                        self.df_counterfactuals,
+                        self.df_choices
+                    )
                     self.dfa_state = DFA_WHATIF
+                    model = "WHATIF"
                 else:
-                    X = pd.DataFrame([obs])
-                    action = self.model.predict(X)[0]
+                    action = self.model.predict(obs_state)
                     self.dfa_state = DFA_POLICY
+                    model = "POLICY"
+    
+            elif self.dfa_state == DFA_POLICY:
+                if self.latent_collision:
+                    action = get_WhatIf_action(
+                        obs_state,
+                        action,
+                        self.df_counterfactuals,
+                        self.df_choices
+                    )
+                    self.dfa_state = DFA_WHATIF
+                    model = "WHATIF"
+                else:
+                    action = self.model.predict(obs_state)
+                    model = "POLICY"
+    
+            elif self.dfa_state == DFA_WHATIF:
+                if self.latent_collision:
+                    action = get_WhatIf_action(
+                        obs_state,
+                        action,
+                        self.df_counterfactuals,
+                        self.df_choices
+                    )
+                    model = "WHATIF"
+                else:
+                    action = self.model.predict(obs_state)
+                    self.dfa_state = DFA_POLICY
+                    model = "POLICY"
+    
+            # ---- Publish action & debug ----
+            self.publish_action(
+                action,
+                prev_action,
+                obs_state,
+                prev_obs_state,
+                model,
+                self.latent_collision,
+                prev_latent_collision
+            )
+    
+            # ---- Store previous ----
+            prev_obs_state = obs_state.copy()
+            prev_latent_collision = self.latent_collision
+            prev_action = action
+    
+            self._sleep(period, start)
+            
+    # ---------------- _sleep ----------------        
 
-                if action != self.prev_action:
-                    self.pub_action.publish(String(data=action))
-                    self.prev_action = action
+    def _sleep(self, period, start):
+        elapsed = time.time() - start
+        remaining = period - elapsed
+        if remaining > 0:
+            time.sleep(remaining)
 
-                self.prev_obs_state = obs.copy()
-                self.prev_latent_collision = self.latent_collision
+# ---------------- main ---------------- 
 
-            elapsed = time.time() - start
-            if elapsed < self.policy_period:
-                time.sleep(self.policy_period - elapsed)
+def main(args=None):
 
-# ---------------- Main ----------------
-
-def main():
-    rclpy.init()
+    rclpy.init(args=args)
 
     if len(sys.argv) != 6:
-        print("Usage: ros2 run decision_making action_policy speed_left speed_right speed_citroen counterfactuals.csv choices.csv")
-        return
+        print(
+            "Usage:\n"
+            "ros2 run decision_making counterfactuals "
+            "<speed_left> <speed_right> <speed_citroen> "
+            "<counterfactuals.csv> <choices.csv>"
+        )
+        sys.exit(1)
 
-    node = ActionPolicyNode(*sys.argv[1:])
-    node.run()
+    speed_left = sys.argv[1]
+    speed_right = sys.argv[2]
+    speed_citroen = sys.argv[3]
+    counterfactuals = sys.argv[4]
+    choices = sys.argv[5]
 
-    node.destroy_node()
-    rclpy.shutdown()
+    node = CounterfactualsNode(
+        speed_left,
+        speed_right,
+        speed_citroen,
+        counterfactuals,
+        choices
+    )
+
+    try:
+        node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

@@ -84,7 +84,7 @@ class LatentCollisionDetector(Node):
         self.create_subscription(Bool, "/BMW/free_SE", self.cb("free_SE"), 10)
         self.create_subscription(Bool, "/BMW/free_SW", self.cb("free_SW"), 10)
 
-        self.create_subscription(String, "/BMW/action",
+        self.create_subscription(String, "/BMW/policy/action",
                                  self.cb("action"), 10)
 
         self.create_subscription(RadarScan, "/BMW/frontal_radar",
