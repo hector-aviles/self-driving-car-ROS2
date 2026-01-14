@@ -333,7 +333,7 @@ def main():
     rclpy.init()
 
     if len(sys.argv) != 4:
-        print("Usage: ros2 run self_driving_car action_policy v_left v_right v_citroen")
+        print("Usage: ros2 run self_driving_car action_policy speed_left speed_right speed_citroen")
         return
 
     node = ActionPolicyNode(sys.argv[1], sys.argv[2], sys.argv[3])
