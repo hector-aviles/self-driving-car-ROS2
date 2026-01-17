@@ -20,6 +20,10 @@ sudo cp -r src/self_driving_car/controllers/supervisor_opposite_autonomous_1/ /u
 sudo cp -r src/self_driving_car/controllers/supervisor/ /usr/local/webots/projects/default/controllers/supervisor/
 
 4) Execute 30 runs per world
+
+source install/setup.bash
+ros2 launch self_driving_car head_on_1.py
+ros2 run decision_making action_policy 0 3 7
  
 
 ######################   
