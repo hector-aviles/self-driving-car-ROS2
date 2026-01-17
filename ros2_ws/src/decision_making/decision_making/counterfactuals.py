@@ -211,6 +211,8 @@ def get_WhatIf_action(obs, prev_action, df_counterfactuals, df_choices):
         print("ERROR: no matching rows found in choices. publishing NA", flush=True)
         return "NA"
     
+        self.get_logger().info(f"filtered: {filtered} alternatives {alternatives} row {row} curr_lane: {obs['curr_lane']} action right_lane: {row['right_lane'].values[0]} action left_lane: {row['left_lane'].values[0]}")
+    
     return row["right_lane"].values[0] if obs["curr_lane"] else row["left_lane"].values[0]
 
 
@@ -325,7 +327,7 @@ class CounterfactualsNode(Node):
     
         if obs_changed or collision_changed or action_changed:
             self.get_logger().info(
-                f"latent_collision={latent_collision} "
+                f"latent_collision={self.latent_collision} "
                 f"{obs_state} "
                 f"{action_str}"
             )
@@ -388,6 +390,8 @@ class CounterfactualsNode(Node):
                 self._sleep(period, start)
                 continue
     
+            self.get_logger().info(f"obs_changed: {obs_changed} collision_changed: {self.latent_collision}")    
+    
             # -------- DFA --------
             if self.dfa_state == DFA_INIT:
                 if self.latent_collision:
@@ -395,14 +399,18 @@ class CounterfactualsNode(Node):
                         obs_state,
                         action,
                         self.df_counterfactuals,
-                        self.df_choices
+                        self.df_choices     
                     )
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {action} self.latent_collision: {self.latent_collision}")
                     self.dfa_state = DFA_WHATIF
                     model = "WHATIF"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
                 else:
                     action = self.model.predict(obs_state)
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {action} self.latent_collision: {self.latent_collision}")
                     self.dfa_state = DFA_POLICY
                     model = "POLICY"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
     
             elif self.dfa_state == DFA_POLICY:
                 if self.latent_collision:
@@ -412,11 +420,15 @@ class CounterfactualsNode(Node):
                         self.df_counterfactuals,
                         self.df_choices
                     )
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {action} self.latent_collision: {self.latent_collision}")
                     self.dfa_state = DFA_WHATIF
                     model = "WHATIF"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
                 else:
                     action = self.model.predict(obs_state)
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {self.latent_collision} self.latent_collision: {self.latent_collision}")
                     model = "POLICY"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
     
             elif self.dfa_state == DFA_WHATIF:
                 if self.latent_collision:
@@ -426,11 +438,15 @@ class CounterfactualsNode(Node):
                         self.df_counterfactuals,
                         self.df_choices
                     )
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {action} self.latent_collision: {self.latent_collision}")
                     model = "WHATIF"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
                 else:
                     action = self.model.predict(obs_state)
+                    self.get_logger().info(f"self.dfa_state: {self.dfa_state} action: {action} self.latent_collision: {self.latent_collision}")
                     self.dfa_state = DFA_POLICY
                     model = "POLICY"
+                    self.get_logger().info(f"New self.dfa_state: {self.dfa_state} model: {model}")
     
             # ---- Publish action & debug ----
             self.publish_action(

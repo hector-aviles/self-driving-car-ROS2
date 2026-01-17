@@ -27,7 +27,6 @@ setup(
             os.path.join(
                 'share',
                 package_name,
-                'decision_making',
                 'counterfactuals_model'
             ),
             glob('decision_making/counterfactuals_model/*')
