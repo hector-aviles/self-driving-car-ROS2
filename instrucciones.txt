@@ -26,7 +26,7 @@ colcon build --packages-select simple
 
 source install/setup.bash
 
-pip install lark-parser
+pip install lark-parser lark PyYAML 
 pip install lark
 python3 -m pip install PyYAML
 pip install catkin_pkg
@@ -50,7 +50,7 @@ source install/setup.bash
 tree -L 4 src/webots_ros2*
 
 sudo apt install ros-${ROS_DISTRO}-radar-msgs
-pip install empy
+pip install empy lark-parser setuptools colcon-common-extensions catkin_pkg rosdep pandas scikit-learn numpy python3-pandas python3-sklearn python3-numpy python3-scipy
 pip install lark-parser
 pip install setuptools
 pip install colcon-common-extensions

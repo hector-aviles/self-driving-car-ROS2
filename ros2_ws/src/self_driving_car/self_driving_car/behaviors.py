@@ -244,12 +244,14 @@ class BehaviorsNode(Node):
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             if self.current_y > -0.7:
                 self.state = SM_CHANGE_LEFT_2
+            self.get_logger().info(f"Changing lane left {self.state}  {self.current_y}")    
 
         elif self.state == SM_CHANGE_LEFT_2:
             self.speed = self.max_speed
             self.steering = self.turning_steering(-1.2, 2.9, self.speed)
             if self.current_y > 1.0 and abs(self.current_a) < 0.2:
                 self.finish_lane_change()
+            self.get_logger().info(f"Changing lane left {self.state}  {self.current_y} {self.current_a}")    
 
         elif self.state == SM_CHANGE_RIGHT_1:
             self.speed = self.max_speed
@@ -267,7 +269,7 @@ class BehaviorsNode(Node):
         # STATE FOR SWERVING TO LEFT
         #
         elif self.state == SM_SWERVE_LEFT:
-            self.get_logger().info("Swerving left")
+            #self.get_logger().info("Swerving left")
             self.speed, self.steering = self.calculate_control()     
             if self.action and self.action != "swerve_left":
                 self.set_nominal_params()
@@ -277,7 +279,7 @@ class BehaviorsNode(Node):
         # STATE FOR SWERVE RIGHT
         #
         elif self.state == SM_SWERVE_RIGHT:
-            self.get_logger().info("Swerving right")
+            #self.get_logger().info("Swerving right")
             self.speed, self.steering = self.calculate_control()
             if self.action and self.action != "swerve_right":
                 self.set_nominal_params()
