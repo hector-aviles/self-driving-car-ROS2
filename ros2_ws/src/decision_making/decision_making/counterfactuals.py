@@ -216,7 +216,6 @@ class CounterfactualsNode(Node):
         self.free_N = self.free_E = self.free_NE = self.free_NW = True
         self.free_SE = self.free_SW = self.free_W = True
         self.latent_collision = False
-        self.abort = False
        
         self.change_lane_finished = False
         self.prev_obs = None
@@ -238,7 +237,6 @@ class CounterfactualsNode(Node):
         # ---- Publishers ----
         self.pub_action = self.create_publisher(String, "/BMW/policy/action", qos_latched)
         self.pub_started = self.create_publisher(Empty, "/BMW/policy/started", qos_latched)
-        self.pub_abort = self.create_publisher(Bool, "/BMW/policy/abort", qos_latched)
         self.pub_speed_left = self.create_publisher(Float64, "/vehicles_left_lane/speed", qos_latched)
         self.pub_speed_right = self.create_publisher(Float64, "/vehicles_right_lane/speed", qos_latched)
         self.pub_speed_citroen = self.create_publisher(Float64, "/CitroenCZero/speed", qos_latched)
@@ -273,7 +271,7 @@ class CounterfactualsNode(Node):
     def cb_change_lane_finished(self, msg): self.change_lane_finished = msg.data
     def cb_latent_collision(self, msg):
       self.latent_collision = msg.data
-      # Removed publish_abort from here to match ROS1 style (handled in run)
+      
     # ---------------- Publish action ----------------
  
     def publish_action(
@@ -338,7 +336,7 @@ class CounterfactualsNode(Node):
             self.pub_speed_right.publish(Float64(data=self.v_right))
             self.pub_speed_citroen.publish(Float64(data=self.v_citroen))
 
-            # Patch (very important - same in both versions)
+            # Patch
             if self.curr_lane:
                 self.free_NE = self.free_N
             else:
@@ -364,40 +362,34 @@ class CounterfactualsNode(Node):
                 self._sleep(period, start)
                 continue
 
-            # ── DFA logic (following ROS 1 transition style) ────────
+            # ── DFA logic  ────────
             if self.dfa_state == DFA_INIT:
                 if self.latent_collision:
                     action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
                     model = "WHATIF"
-                    self.dfa_state = DFA_POLICY          # ← ROS 1 behavior from INIT
-                    self.pub_abort.publish(Bool(data=False))
+                    self.dfa_state = DFA_POLICY 
                 else:
                     action = self.model.predict(obs_int)
                     model = "POLICY"
-                    self.dfa_state = DFA_WHATIF          # ← ROS 1 behavior from INIT
-                    self.pub_abort.publish(Bool(data=True))
+                    self.dfa_state = DFA_WHATIF 
 
             elif self.dfa_state == DFA_POLICY:
                 if self.latent_collision:
                     action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
                     model = "WHATIF"
                     self.dfa_state = DFA_WHATIF
-                    self.pub_abort.publish(Bool(data=False))
                 else:
                     action = self.model.predict(obs_int)
                     model = "POLICY"
-                    self.pub_abort.publish(Bool(data=True))
 
             elif self.dfa_state == DFA_WHATIF:
                 if self.latent_collision:
                     action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
                     model = "WHATIF"
-                    self.pub_abort.publish(Bool(data=False))
                 else:
                     action = self.model.predict(obs_int)
                     model = "POLICY"
                     self.dfa_state = DFA_POLICY
-                    self.pub_abort.publish(Bool(data=True))
 
             action = "change_to_left"
             # ── Publish action + debug ──────────────────────────────

@@ -82,7 +82,7 @@ class BehaviorsNode(Node):
         self.current_x = 0.0
         self.current_y = 0.0
         self.current_a = 0.0
-        self.abort = False
+        self.latent_collision = False
 
         self.finished_published = False
 
@@ -98,8 +98,8 @@ class BehaviorsNode(Node):
                                  self.cb_dist, 10)
         self.create_subscription(Pose2D, "/BMW/pose",
                                  self.cb_pose, 10)
-        self.create_subscription(Bool, "/BMW/policy/abort",
-                                 self.cb_abort, 10)                         
+        self.create_subscription(Bool, "/BMW/latent_collision",
+                                 self.cb_latent_collision, 10)                         
 
         # ---------------- Publishers ----------------
         self.pub_speed = self.create_publisher(Float64, "/BMW/speed", 1)
@@ -142,8 +142,8 @@ class BehaviorsNode(Node):
         self.current_y = msg.y
         self.current_a = msg.theta
         
-    def cb_abort(self, msg):
-        self.abort = msg.data
+    def cb_latent_collision(self, msg):
+        self.latent_collision = msg.data
 
     # =====================================================
     # Control helpers
@@ -307,11 +307,12 @@ class BehaviorsNode(Node):
             self.state = SM_WAITING_FOR_NEW_TASK
 
         undoable_states = [SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1]     
-        #if state in undoable_states and abort and latent_collision:
-        if self.state in undoable_states and self.abort:
+        #if state in undoable_states and latent_collision:
+        self.latent_collision = False
+        if self.state in undoable_states and self.latent_collision:
            # Essentially, to abort change lane only
            self.state = SM_UNDOING_TURN
-           self.get_logger().info(f"Aborting changing lane {self.state} {self.abort}")
+           self.get_logger().info(f"Aborting changing lane {self.state} {self.latent_collision}")
            self.set_nominal_params()
 
         self.get_logger().info(f"state {self.state} action {self.action}")  
