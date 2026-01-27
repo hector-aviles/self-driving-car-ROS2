@@ -314,6 +314,7 @@ class BehaviorsNode(Node):
            self.get_logger().info(f"Aborting changing lane {self.state} {self.abort}")
            self.set_nominal_params()
 
+        self.get_logger().info(f"state {self.state} action {self.action}")  
         self.pub_speed.publish(Float64(data=float(self.speed)))
         self.pub_steering.publish(Float64(data=float(self.steering)))
 

@@ -223,7 +223,7 @@ class ActionPolicyNode(Node):
             Empty, "/BMW/policy/started", qos_latched)
 
         self.pub_action = self.create_publisher(
-            String, "/BMW/action", qos_latched)
+            String, "/BMW/policy/action", qos_latched)
 
         self.pub_speed_left = self.create_publisher(
             Float64, "/vehicles_left_lane/speed", qos_latched)
