@@ -72,10 +72,7 @@ class BehaviorsNode(Node):
         self.current_y = 0.0
         self.current_a = 0.0
         self.latent_collision = False
-
-        # Counterfactuals flag
         self.counterfactuals = False
-
         self.finished_published = False
 
         # ---------------- Subscribers ----------------
