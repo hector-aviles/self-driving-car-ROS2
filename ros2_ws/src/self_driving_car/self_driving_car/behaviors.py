@@ -238,19 +238,18 @@ class BehaviorsNode(Node):
                 self.finish_lane_change()
          
         elif self.state == SM_UNDOING_TURN:
-            if speed <= 10:
-               speed = self.max_speed
+            if self.speed <= 10.0:
+               self.speed = self.max_speed
             
-            w = 0.0
-            if self.current_a < 0.0:
-               w = 1.2
-            else:
-               w = -1.2
+            # Desired angular velocity to undo the turn
+            w = 1.2 if self.current_a < 0.0 else -1.2
+
             self.steering = self.turning_steering(w, 2.9, self.speed)
             
-            if abs(self.current_a) < 0.1: 
+            # Finish undo when heading is nearly aligned
+            if abs(self.current_a) < 0.1:
                self.state = SM_WAITING_FOR_NEW_TASK
-               self.finish_lane_change()   
+               self.finish_lane_change()
             
 
         undoable_states = [SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1]
