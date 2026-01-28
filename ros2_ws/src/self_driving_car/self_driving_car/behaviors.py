@@ -236,6 +236,22 @@ class BehaviorsNode(Node):
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             if self.current_y < -1.0 and abs(self.current_a) < 0.2:
                 self.finish_lane_change()
+         
+        elif self.state == SM_UNDOING_TURN:
+            if speed <= 10:
+               speed = self.max_speed
+            
+            w = 0.0
+            if self.current_a < 0.0:
+               w = 1.2
+            else:
+               w = -1.2
+            self.steering = self.turning_steering(w, 2.9, self.speed)
+            
+            if abs(self.current_a) < 0.1: 
+               self.state = SM_WAITING_FOR_NEW_TASK
+               self.finish_lane_change()   
+            
 
         undoable_states = [SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1]
         if (

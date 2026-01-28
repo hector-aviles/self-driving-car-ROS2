@@ -1,34 +1,28 @@
 #!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, String, Empty, Float64
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 from ament_index_python.packages import get_package_share_directory
-
 import os
 import time
 import sys
 import pandas as pd
 import numpy as np
-
 # ---------------- QoS ----------------
 qos_latched = QoSProfile(
     depth=1,
     durability=DurabilityPolicy.TRANSIENT_LOCAL,
     reliability=ReliabilityPolicy.RELIABLE
 )
-
 # ---------------- DFA states ----------------
 DFA_INIT = 0
 DFA_POLICY = 10
 DFA_WHATIF = 20
-
 # ---------------- Policy ----------------
 class ActionPolicy:
     def __init__(self):
         self.actions = [None] * 128
-
         self.actions[0] = "keep"
         self.actions[1] = "keep"
         self.actions[2] = "keep"
@@ -157,16 +151,14 @@ class ActionPolicy:
         self.actions[125] = "cruise"
         self.actions[126] = "change_to_right"
         self.actions[127] = "cruise"
-
     def predict(self, obs: dict) -> str:
         cols = [
-            "curr_lane", "free_E", "free_NE", "free_NW",
-            "free_SE", "free_SW", "free_W"
+            "curr_lane","free_E","free_NE","free_NW",
+            "free_SE","free_SW","free_W"
         ]
         data = np.array([int(obs[c]) for c in cols])
         idx = data @ (2 ** np.arange(7))
         return self.actions[idx]
-
 # ---------------- Counterfactual logic ----------------
 def get_WhatIf_action(obs, prev_action, df_counterfactuals, df_choices):
     filtered = df_counterfactuals[
@@ -184,67 +176,64 @@ def get_WhatIf_action(obs, prev_action, df_counterfactuals, df_choices):
         print("ERROR: no matching rows found in counterfactuals. Default NA", flush=True)
         return "NA"
 
+    # Build alternatives vector
     alternatives = {
-        "swerve_left": 0,
-        "swerve_right": 0,
-        "cruise": 0,
-        "keep": 0,
-        "change_to_left": 0,
-        "change_to_right": 0
+        "swerve_left": 0, "swerve_right": 0,
+        "cruise": 0, "keep": 0,
+        "change_to_left": 0, "change_to_right": 0
     }
 
     for ia in filtered["iaction"]:
         if ia in alternatives:
             alternatives[ia] = 1
 
+    # Find matching choice row
     row = df_choices[
-        (df_choices["swerve_left"]     == alternatives["swerve_left"]) &
-        (df_choices["swerve_right"]    == alternatives["swerve_right"]) &
-        (df_choices["cruise"]          == alternatives["cruise"]) &
-        (df_choices["keep"]            == alternatives["keep"]) &
-        (df_choices["change_to_left"]  == alternatives["change_to_left"]) &
-        (df_choices["change_to_right"] == alternatives["change_to_right"])
+        (df_choices["swerve_left"]    == alternatives["swerve_left"])    &
+        (df_choices["swerve_right"]   == alternatives["swerve_right"])   &
+        (df_choices["cruise"]         == alternatives["cruise"])         &
+        (df_choices["keep"]           == alternatives["keep"])           &
+        (df_choices["change_to_left"] == alternatives["change_to_left"]) &
+        (df_choices["change_to_right"]== alternatives["change_to_right"])
     ]
 
     if row.empty:
         print("ERROR: no matching rows found in choices. publishing NA", flush=True)
         return "NA"
 
+    # Decide based on current lane
     if obs["curr_lane"]:
         return row["right_lane"].values[0]
     else:
         return row["left_lane"].values[0]
-
 # ---------------- ROS2 Node ----------------
 class CounterfactualsNode(Node):
     def __init__(self, v_left, v_right, v_citroen,
                  counterfactuals_file, choices_file):
         super().__init__("counterfactuals_node")
-
         # ---- State ----
         self.curr_lane = True
         self.free_N = self.free_E = self.free_NE = self.free_NW = True
         self.free_SE = self.free_SW = self.free_W = True
         self.latent_collision = False
-
+       
         self.change_lane_finished = False
+        self.prev_obs = None
+        self.prev_action = None
+        self.prev_latent_collision = None
         self.dfa_state = DFA_INIT
-
         # ---- Policy ----
         self.model = ActionPolicy()
         pkg_share = get_package_share_directory("decision_making")
         base_path = os.path.join(pkg_share, "counterfactuals_model")
         self.df_counterfactuals = pd.read_csv(os.path.join(base_path, counterfactuals_file))
         self.df_choices = pd.read_csv(os.path.join(base_path, choices_file))
-
         # ---- Speeds ----
         self.v_left = float(v_left)
         self.v_right = float(v_right)
         self.v_citroen = float(v_citroen)
-
         # ---- Timeout ----
-        self.action_wait_timeout = 15.0
-
+        self.action_wait_timeout = 15.0  # seconds
         # ---- Publishers ----
         self.pub_action = self.create_publisher(String, "/BMW/policy/action", qos_latched)
         self.pub_started = self.create_publisher(Empty, "/BMW/policy/started", qos_latched)
@@ -252,7 +241,7 @@ class CounterfactualsNode(Node):
         self.pub_speed_right = self.create_publisher(Float64, "/vehicles_right_lane/speed", qos_latched)
         self.pub_speed_citroen = self.create_publisher(Float64, "/CitroenCZero/speed", qos_latched)
         self.pub_counterfactuals = self.create_publisher(Bool, "/BMW/counterfactuals", qos_latched)
-
+        
         # ---- Subscribers ----
         self.create_subscription(Bool, "/BMW/free_N", self.cb_free_N, 10)
         self.create_subscription(Bool, "/BMW/free_NW", self.cb_free_NW, 10)
@@ -262,9 +251,16 @@ class CounterfactualsNode(Node):
         self.create_subscription(Bool, "/BMW/free_E", self.cb_free_E, 10)
         self.create_subscription(Bool, "/BMW/free_SE", self.cb_free_SE, 10)
         self.create_subscription(Bool, "/BMW/current_lane", self.cb_curr_lane, 10)
-        self.create_subscription(Bool, "/BMW/change_lane/finished", self.cb_change_lane_finished, 10)
-        self.create_subscription(Bool, "/BMW/latent_collision", self.cb_latent_collision, 10)
-
+        self.create_subscription(
+            Bool,
+            "/BMW/change_lane/finished",
+            self.cb_change_lane_finished,
+            10
+        )
+        self.create_subscription(Bool, "/BMW/latent_collision",
+            self.cb_latent_collision,
+            10
+        )
     # ---------------- Callbacks ----------------
     def cb_free_N(self, msg): self.free_N = msg.data
     def cb_free_NW(self, msg): self.free_NW = msg.data
@@ -275,42 +271,181 @@ class CounterfactualsNode(Node):
     def cb_free_SE(self, msg): self.free_SE = msg.data
     def cb_curr_lane(self, msg): self.curr_lane = msg.data
     def cb_change_lane_finished(self, msg): self.change_lane_finished = msg.data
-    def cb_latent_collision(self, msg): self.latent_collision = msg.data
-
+    def cb_latent_collision(self, msg):
+      self.latent_collision = msg.data
+      
+    # ---------------- Publish action ----------------
+ 
+    def publish_action(
+        self,
+        action,
+        prev_action,
+        obs_state,
+        prev_obs_state,
+        model,
+        latent_collision,
+        prev_latent_collision
+    ):
+        # ---- Debug string ----
+        if model == "POLICY":
+            action_str = f"POLICY action={action}"
+        else:
+            action_str = f"WHATIF action={action}"
+   
+        obs_changed = (
+            prev_obs_state is None or
+            any(obs_state[k] != prev_obs_state[k] for k in obs_state)
+        )
+        collision_changed = latent_collision != prev_latent_collision
+        action_changed = action != prev_action
+   
+        if obs_changed or collision_changed or action_changed:
+            self.get_logger().info(
+                f"latent_collision={self.latent_collision} "
+                f"{obs_state} "
+                f"{action_str}"
+            )
+   
+            # ---- Publish action ----
+            self.pub_action.publish(
+                String(data=action)
+            )
+           
     # ---------------- run ----------------
+           
     def run(self):
-        period = 0.1
+        period = 0.1  # 10 Hz
 
         action = "cruise"
         prev_action = "NA"
+        model = "UNKNOWN"
+
         prev_obs = None
         prev_collision = None
-
+        
         self.get_logger().info(f"Publishing initial action={action}")
         self.pub_action.publish(String(data=action))
 
+        self.get_logger().info(f"Publishing counteractuals=True") 
         self.pub_counterfactuals.publish(Bool(data=True))
 
         while rclpy.ok():
             start = time.time()
             rclpy.spin_once(self, timeout_sec=0.01)
 
+            # Periodic publications (speeds + started)
             self.pub_started.publish(Empty())
             self.pub_speed_left.publish(Float64(data=self.v_left))
             self.pub_speed_right.publish(Float64(data=self.v_right))
             self.pub_speed_citroen.publish(Float64(data=self.v_citroen))
 
-            self._sleep(period, start)
+            # Patch
+            if self.curr_lane:
+                self.free_NE = self.free_N
+            else:
+                self.free_NW = self.free_N
 
+            obs = {
+                "curr_lane": self.curr_lane,
+                "free_E":    self.free_E,
+                "free_NE":   self.free_NE,
+                "free_NW":   self.free_NW,
+                "free_SE":   self.free_SE,
+                "free_SW":   self.free_SW,
+                "free_W":    self.free_W,
+            }
+
+            # Only ints for indexing / comparison consistency
+            obs_int = {k: int(v) for k, v in obs.items()}
+
+            changed_obs       = prev_obs is None or obs_int != prev_obs
+            changed_collision = self.latent_collision != prev_collision
+
+            if not changed_obs and not changed_collision:
+                self._sleep(period, start)
+                continue
+
+            # ── DFA logic  ────────
+            if self.dfa_state == DFA_INIT:
+                if self.latent_collision:
+                    action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
+                    model = "WHATIF"
+                    self.dfa_state = DFA_POLICY 
+                else:
+                    action = self.model.predict(obs_int)
+                    model = "POLICY"
+                    self.dfa_state = DFA_WHATIF 
+
+            elif self.dfa_state == DFA_POLICY:
+                if self.latent_collision:
+                    action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
+                    model = "WHATIF"
+                    self.dfa_state = DFA_WHATIF
+                else:
+                    action = self.model.predict(obs_int)
+                    model = "POLICY"
+
+            elif self.dfa_state == DFA_WHATIF:
+                if self.latent_collision:
+                    action = get_WhatIf_action(obs_int, action, self.df_counterfactuals, self.df_choices)
+                    model = "WHATIF"
+                else:
+                    action = self.model.predict(obs_int)
+                    model = "POLICY"
+                    self.dfa_state = DFA_POLICY
+
+            action = "change_to_left"
+            # ── Publish action + debug ──────────────────────────────
+            self.publish_action(
+                action=action,
+                prev_action=prev_action,
+                obs_state=obs,
+                prev_obs_state=prev_obs,
+                model=model,
+                latent_collision=self.latent_collision,
+                prev_latent_collision=prev_collision
+            )
+
+            # ── Wait for completion when the action requires it ─────
+            if action not in ("cruise", "keep", "swerve_left", "swerve_right"):
+                self.get_logger().info(f"Waiting up to {self.action_wait_timeout}s for '{action}' to finish...")
+                wait_start = time.time()
+                finished = False
+
+                while rclpy.ok():
+                    rclpy.spin_once(self, timeout_sec=0.1)
+
+                    if self.change_lane_finished:
+                        self.get_logger().info(f"Action '{action}' finished.")
+                        self.change_lane_finished = False  # reset flag
+                        finished = True
+                        break
+
+                    if time.time() - wait_start > self.action_wait_timeout:
+                        self.get_logger().warn(f"Timeout waiting for '{action}'")
+                        # You may want to publish abort / fallback here
+                        break
+
+                if not finished:
+                    # Optional: force fallback or abort here if desired
+                    pass
+
+            # ── Update history ──────────────────────────────────────
+            prev_obs = obs_int.copy()
+            prev_collision = self.latent_collision
+            prev_action = action
+
+            self._sleep(period, start)
+           
+    # ---------------- _sleep ----------------
     def _sleep(self, period, start):
-        remaining = period - (time.time() - start)
+        elapsed = time.time() - start
+        remaining = period - elapsed
         if remaining > 0:
             time.sleep(remaining)
-
 # ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
-
     if len(sys.argv) != 6:
         print(
             "Usage:\n"
@@ -319,15 +454,18 @@ def main(args=None):
             "<counterfactuals.csv> <choices.csv>"
         )
         sys.exit(1)
-
+    speed_left = sys.argv[1]
+    speed_right = sys.argv[2]
+    speed_citroen = sys.argv[3]
+    counterfactuals = sys.argv[4]
+    choices = sys.argv[5]
     node = CounterfactualsNode(
-        sys.argv[1],
-        sys.argv[2],
-        sys.argv[3],
-        sys.argv[4],
-        sys.argv[5]
+        speed_left,
+        speed_right,
+        speed_citroen,
+        counterfactuals,
+        choices
     )
-
     try:
         node.run()
     except KeyboardInterrupt:
@@ -335,7 +473,6 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
-
 if __name__ == "__main__":
     main()
 
