@@ -144,6 +144,7 @@ class BehaviorsNode(Node):
 
     def cb_counterfactuals(self, msg):
         self.counterfactuals = msg.data
+        self.get_logger().info("Topic /BMW/counterfactuals = True")
 
     # =====================================================
     # Control helpers

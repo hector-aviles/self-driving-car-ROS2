@@ -289,8 +289,6 @@ class CounterfactualsNode(Node):
         self.get_logger().info(f"Publishing initial action={action}")
         self.pub_action.publish(String(data=action))
 
-        # ---- Publish counterfactuals flag ONCE ----
-        #self.get_logger().info("Publishing /BMW/counterfactuals = True (latched)")
         self.pub_counterfactuals.publish(Bool(data=True))
 
         while rclpy.ok():
