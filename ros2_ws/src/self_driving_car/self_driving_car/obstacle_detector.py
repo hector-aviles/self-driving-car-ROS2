@@ -11,8 +11,7 @@ from rclpy.node import Node
 from std_msgs.msg import Bool, Float64
 from sensor_msgs.msg import PointCloud2
 from rosgraph_msgs.msg import Clock
-import ros2_numpy as ros_numpy
-
+from sensor_msgs_py import point_cloud2
 
 class ObstacleDetectorNode(Node):
     def __init__(self):
@@ -73,7 +72,12 @@ class ObstacleDetectorNode(Node):
     def callback_point_cloud(self, msg: PointCloud2):
         try:
             # Convert PointCloud2 → numpy array
-            xyz = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
+            # xyz = ros_numpy.point_cloud2.pointcloud2_to_xyz_array(msg)
+            xyz = numpy.fromiter(
+               point_cloud2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True),
+               dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')]
+            )
+            xyz = numpy.vstack((xyz['x'], xyz['y'], xyz['z'])).T
 
             # Filter points close to the ground
             xyz = xyz[(xyz[:, 2] > -1.0) & (xyz[:, 2] < 0.3)]

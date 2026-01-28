@@ -197,4 +197,6 @@ rviz2 \
   rviz2 -d ~/rviz_configs/lidar_debug.rviz
   
   colcon build --packages-select simple
-
+sudo apt install ros-jazzy-tf-transformations
+pip install transforms3d
+python3 -m pip install opencv-python opencv-python-headless

@@ -30,13 +30,7 @@ SM_UNDOING_TURN = 210
 
 MAX_STEERING = 0.5
 
-#
-# Steering is calculated proportional to two errors: distance error and angle error.
-# These errors correspond to differences between an observed line (in normal form)
-# and a desired line.
-# Speed is calculated as the max speed minus a speed proportional to the steering.
-# In this way, car goes with lower speed in curves and at max speed in straight roads. 
-#
+
 class BehaviorsNode(Node):
 
     def __init__(self):
@@ -55,11 +49,6 @@ class BehaviorsNode(Node):
         self.lane_rho_r = 0.0
         self.lane_theta_r = 0.0
 
-        #self.goal_rho_l = 370.0
-        #self.goal_theta_l = 2.4
-        #self.goal_rho_r = 430.0
-        #self.goal_theta_r = 0.895
-        
         self.goal_rho_l   = 481.0
         self.goal_theta_l = 2.085
         self.goal_rho_r   = 466.0
@@ -67,13 +56,13 @@ class BehaviorsNode(Node):
 
         # Nominal lane parameters
         self.nominal_params = dict(
-          k_rho = 0.001,
-          k_theta = 0.01,
-          max_speed=30.0,
-          goal_rho_l=481.0,
-          goal_theta_l=2.085,
-          goal_rho_r=466.0,
-          goal_theta_r=0.99
+            k_rho=0.001,
+            k_theta=0.01,
+            max_speed=30.0,
+            goal_rho_l=481.0,
+            goal_theta_l=2.085,
+            goal_rho_r=466.0,
+            goal_theta_r=0.99
         )
 
         # ---------------- State ----------------
@@ -84,22 +73,26 @@ class BehaviorsNode(Node):
         self.current_a = 0.0
         self.latent_collision = False
 
+        # Counterfactuals flag
+        self.counterfactuals = False
+
         self.finished_published = False
 
         # ---------------- Subscribers ----------------
-        
-        self.create_subscription(String, "/BMW/policy/action", 
+        self.create_subscription(String, "/BMW/policy/action",
                                  self.cb_action, qos_latched)
         self.create_subscription(Float64MultiArray, "/BMW/demo/left_lane",
                                  self.cb_left_lane, 10)
         self.create_subscription(Float64MultiArray, "/BMW/demo/right_lane",
-                                 self.cb_right_lane, 10)  
+                                 self.cb_right_lane, 10)
         self.create_subscription(Float64, "/BMW/obstacle_distance",
                                  self.cb_dist, 10)
         self.create_subscription(Pose2D, "/BMW/pose",
                                  self.cb_pose, 10)
         self.create_subscription(Bool, "/BMW/latent_collision",
-                                 self.cb_latent_collision, 10)                         
+                                 self.cb_latent_collision, 10)
+        self.create_subscription(Bool, "/BMW/counterfactuals", 
+                                 self.cb_counterfactuals, qos_latched)
 
         # ---------------- Publishers ----------------
         self.pub_speed = self.create_publisher(Float64, "/BMW/speed", 1)
@@ -111,15 +104,19 @@ class BehaviorsNode(Node):
         self.period = 0.1  # 10 Hz
 
         self.get_logger().info("Behaviors node initialized")
-        
+
+    # =====================================================
+    # Parameter helpers
+    # =====================================================
+
     def set_nominal_params(self):
-       self.k_rho = self.nominal_params["k_rho"]
-       self.k_theta = self.nominal_params["k_theta"]
-       self.max_speed     = self.nominal_params["max_speed"]
-       self.goal_rho_l    = self.nominal_params["goal_rho_l"]
-       self.goal_theta_l = self.nominal_params["goal_theta_l"]
-       self.goal_rho_r    = self.nominal_params["goal_rho_r"]
-       self.goal_theta_r = self.nominal_params["goal_theta_r"]
+        self.k_rho = self.nominal_params["k_rho"]
+        self.k_theta = self.nominal_params["k_theta"]
+        self.max_speed = self.nominal_params["max_speed"]
+        self.goal_rho_l = self.nominal_params["goal_rho_l"]
+        self.goal_theta_l = self.nominal_params["goal_theta_l"]
+        self.goal_rho_r = self.nominal_params["goal_rho_r"]
+        self.goal_theta_r = self.nominal_params["goal_theta_r"]
 
     # =====================================================
     # Callbacks
@@ -127,7 +124,7 @@ class BehaviorsNode(Node):
 
     def cb_action(self, msg):
         self.action = msg.data
-    
+
     def cb_left_lane(self, msg):
         self.lane_rho_l, self.lane_theta_l = msg.data
 
@@ -136,14 +133,17 @@ class BehaviorsNode(Node):
 
     def cb_dist(self, msg):
         self.dist_to_car = msg.data
-                    
+
     def cb_pose(self, msg):
         self.current_x = msg.x
         self.current_y = msg.y
         self.current_a = msg.theta
-        
+
     def cb_latent_collision(self, msg):
         self.latent_collision = msg.data
+
+    def cb_counterfactuals(self, msg):
+        self.counterfactuals = msg.data
 
     # =====================================================
     # Control helpers
@@ -172,7 +172,6 @@ class BehaviorsNode(Node):
         if v == 0:
             return 0.0
         k = max(min(L * w / v, 0.5), -0.5)
-        #self.get_logger().info(f"Steering calculation v:{v} k:{k}, L:{L} w:{w} math.asin(k): {math.asin(k)} MAX_STEERING:{MAX_STEERING} -MAX_STEERING:{-MAX_STEERING}")
         return max(min(math.asin(k), MAX_STEERING), -MAX_STEERING)
 
     # =====================================================
@@ -186,47 +185,21 @@ class BehaviorsNode(Node):
 
         if self.state == SM_INIT:
             self.state = SM_WAITING_FOR_NEW_TASK
-            self.get_logger().info("Waiting for task")            
 
         elif self.state == SM_WAITING_FOR_NEW_TASK:
             self.finished_published = False
-            
+
             if self.action == "cruise":
                 self.state = SM_CRUISE
                 self.action = None
-
             elif self.action == "keep":
                 self.state = SM_KEEP
                 self.action = None
-
             elif self.action == "change_to_left":
                 self.state = SM_CHANGE_LEFT_1
                 self.action = None
-
             elif self.action == "change_to_right":
                 self.state = SM_CHANGE_RIGHT_1
-                self.action = None
-                
-            elif self.action == "swerve_left":
-                self.state = SM_SWERVE_LEFT
-                self.max_speed = 30
-                self.k_rho = 0.002
-                self.k_theta = 0.02    
-                self.goal_rho_l   = 385.0
-                self.goal_theta_l = 2.37
-                self.goal_rho_r   = 508.0
-                self.goal_theta_r = 1.16
-                self.action = None
-                
-            elif self.action == "swerve_right":
-                self.state = SM_SWERVE_RIGHT
-                self.k_rho = 0.002
-                self.k_theta = 0.02                    
-                self.max_speed = 30
-                self.goal_rho_l   = 517.0
-                self.goal_theta_l = 1.96
-                self.goal_rho_r   = 330.0
-                self.goal_theta_r = 0.86
                 self.action = None
 
         elif self.state == SM_CRUISE:
@@ -244,14 +217,12 @@ class BehaviorsNode(Node):
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             if self.current_y > -0.7:
                 self.state = SM_CHANGE_LEFT_2
-            self.get_logger().info(f"Changing lane left {self.state}  {self.current_y}")    
 
         elif self.state == SM_CHANGE_LEFT_2:
             self.speed = self.max_speed
             self.steering = self.turning_steering(-1.2, 2.9, self.speed)
             if self.current_y > 1.0 and abs(self.current_a) < 0.2:
                 self.finish_lane_change()
-            self.get_logger().info(f"Changing lane left {self.state}  {self.current_y} {self.current_a}")    
 
         elif self.state == SM_CHANGE_RIGHT_1:
             self.speed = self.max_speed
@@ -264,64 +235,25 @@ class BehaviorsNode(Node):
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             if self.current_y < -1.0 and abs(self.current_a) < 0.2:
                 self.finish_lane_change()
-                
-        #
-        # STATE FOR SWERVING TO LEFT
-        #
-        elif self.state == SM_SWERVE_LEFT:
-            #self.get_logger().info("Swerving left")
-            self.speed, self.steering = self.calculate_control()     
-            if self.action and self.action != "swerve_left":
-                self.set_nominal_params()
-                self.state = SM_WAITING_FOR_NEW_TASK
 
-        #
-        # STATE FOR SWERVE RIGHT
-        #
-        elif self.state == SM_SWERVE_RIGHT:
-            #self.get_logger().info("Swerving right")
-            self.speed, self.steering = self.calculate_control()
-            if self.action and self.action != "swerve_right":
-                self.set_nominal_params()
-                self.state = SM_WAITING_FOR_NEW_TASK
+        undoable_states = [SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1]
+        if (
+            self.counterfactuals
+            and self.state in undoable_states
+            and self.latent_collision
+        ):
+            self.state = SM_UNDOING_TURN
+            self.get_logger().info(
+                f"Aborting changing lane (counterfactuals enabled)"
+            )
+            self.set_nominal_params()
 
-        #
-        # STATE FOR UNDOING TURN
-        #
-        elif self.state == SM_UNDOING_TURN:
-            
-            if self.speed <= 10:
-                self.speed = self.max_speed
-                
-            if self.current_a < 0.0:  
-               w = 1.2 # desired angular velocity
-            else:
-               w = -1.2 # desired angular velocity
-            self.steering = self.turning_steering(w, 2.9, self.speed)     
-            if abs(self.current_a) < 0.1:  
-               self.state = SM_WAITING_FOR_NEW_TASK
-               self.finish_lane_change()
-                                          
-        else:
-            self.get_logger().error(f"invalid STATE {self.state}")
-            self.state = SM_WAITING_FOR_NEW_TASK
-
-        undoable_states = [SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1]     
-        #if state in undoable_states and latent_collision:
-        self.latent_collision = False
-        if self.state in undoable_states and self.latent_collision:
-           # Essentially, to abort change lane only
-           self.state = SM_UNDOING_TURN
-           self.get_logger().info(f"Aborting changing lane {self.state} {self.latent_collision}")
-           self.set_nominal_params()
-
-        #self.get_logger().info(f"state {self.state} action {self.action}")  
         self.pub_speed.publish(Float64(data=float(self.speed)))
         self.pub_steering.publish(Float64(data=float(self.steering)))
 
     def finish_lane_change(self):
         if not self.finished_published:
-            self.pub_finished.publish(Bool(data=True)) 
+            self.pub_finished.publish(Bool(data=True))
             self.finished_published = True
         self.state = SM_WAITING_FOR_NEW_TASK
 
@@ -332,12 +264,9 @@ class BehaviorsNode(Node):
     def run(self):
         while rclpy.ok():
             start = time.time()
-
             rclpy.spin_once(self, timeout_sec=0.01)
             self.main_loop()
-
-            elapsed = time.time() - start
-            remaining = self.period - elapsed
+            remaining = self.period - (time.time() - start)
             if remaining > 0:
                 time.sleep(remaining)
 
