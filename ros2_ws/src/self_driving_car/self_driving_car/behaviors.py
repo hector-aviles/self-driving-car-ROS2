@@ -296,6 +296,7 @@ class BehaviorsNode(Node):
         elif self.state == SM_KEEP:
             self.speed, self.steering = self.calculate_control(
                 dist=self.measured_dist)
+            print(f"Speed in KEEP {self.speed} Steering in KEEP  {self.steering} Distance in KEEP {self.measured_dist}", flush = True)    
             if self.action and self.action != "keep":
                 self.state = SM_WAITING_FOR_NEW_TASK
 
