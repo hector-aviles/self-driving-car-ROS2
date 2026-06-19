@@ -1,0 +1,458 @@
+#!/usr/bin/env python3
+"""
+Behaviors node (ROS2)
+
+Implements driving behaviors as a finite state machine:
+  - Lane tracking with proportional control (cruise / keep)
+  - Lane changes (change_to_left, change_to_right)
+  - Evasive swerves (swerve_left, swerve_right) — gentle veer within the lane
+  - Abort/undo of an in-progress lane change when a collision is detected
+    (SM_UNDOING_TURN), activated by the counterfactuals + latent_collision flags
+
+Actions are received on /BMW/policy/action (String), published by either
+the ActionPolicy node or the KeyboardCtrl node.  Lane changes and swerves
+are discrete maneuvers: /BMW/change_lane/finished (Bool=True) is published
+when the maneuver completes or is aborted, so the decision-maker can unlock.
+
+Lane-tracking control handles the case where only one lane line is detected
+(rho == 0 for the missing line), ported from the ROS1 version.
+"""
+
+import math
+import time
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64MultiArray, Float64, Bool, String
+from geometry_msgs.msg import Pose2D
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
+
+
+# ---------------- QoS ----------------
+
+qos_latched = QoSProfile(
+    depth=1,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    reliability=ReliabilityPolicy.RELIABLE
+)
+
+
+# ---------------- FSM States ----------------
+
+SM_INIT                 = 0
+SM_WAITING_FOR_NEW_TASK = 10
+SM_CRUISE               = 20
+SM_KEEP                 = 30
+SM_CHANGE_LEFT_1        = 40
+SM_CHANGE_LEFT_2        = 45
+SM_CHANGE_RIGHT_1       = 50
+SM_CHANGE_RIGHT_2       = 55
+SM_SWERVE_LEFT_1        = 170
+SM_SWERVE_LEFT_2        = 180
+SM_SWERVE_RIGHT_1       = 190
+SM_SWERVE_RIGHT_2       = 200
+SM_UNDOING_TURN         = 210
+
+MAX_STEERING = 0.5
+
+
+# =====================================================
+# Node
+# =====================================================
+
+class BehaviorsNode(Node):
+
+    def __init__(self):
+        super().__init__('behaviors')
+
+        # ---------------- Control parameters ----------------
+        self.max_speed   = 30.0
+        self.k_rho       = 0.001
+        self.k_theta     = 0.01
+        self.k_keeping    = 10.0
+        self.desired_dist  = 30.0   # setpoint: desired gap to the car ahead
+        self.measured_dist = None   # None until radar detects a vehicle
+
+        # ---------------- Lane perception ----------------
+        self.lane_rho_l   = 0.0
+        self.lane_theta_l = 0.0
+        self.lane_rho_r   = 0.0
+        self.lane_theta_r = 0.0
+
+        # Nominal (center-of-lane) goal parameters
+        self.nominal_params = dict(
+            k_rho      = 0.001,
+            k_theta    = 0.01,
+            max_speed  = 30.0,
+            goal_rho_l   = 481.0,
+            goal_theta_l = 2.085,
+            goal_rho_r   = 466.0,
+            goal_theta_r = 0.99,
+        )
+        self.set_nominal_params()
+
+        # ---------------- FSM state ----------------
+        self.state             = SM_INIT
+        self.action            = None
+        self.current_x         = 0.0
+        self.current_y         = 0.0
+        self.current_a         = 0.0
+        self.latent_collision  = False
+        self.counterfactuals   = False
+        self.finished_published = False
+
+        # Outputs (updated every cycle before publishing)
+        self.speed    = 0.0
+        self.steering = 0.0
+
+        # ---------------- Subscribers ----------------
+        self.create_subscription(String, "/BMW/policy/action",
+                                 self.cb_action, qos_latched)
+        self.create_subscription(Float64MultiArray, "/BMW/demo/left_lane",
+                                 self.cb_left_lane, 10)
+        self.create_subscription(Float64MultiArray, "/BMW/demo/right_lane",
+                                 self.cb_right_lane, 10)
+        self.create_subscription(Float64, "/BMW/obstacle_distance",
+                                 self.cb_dist, 10)
+        self.create_subscription(Pose2D, "/BMW/pose",
+                                 self.cb_pose, 10)
+        self.create_subscription(Bool, "/BMW/latent_collision",
+                                 self.cb_latent_collision, 10)
+        self.create_subscription(Bool, "/BMW/counterfactuals",
+                                 self.cb_counterfactuals, qos_latched)
+
+        # ---------------- Publishers ----------------
+        self.pub_speed    = self.create_publisher(Float64, "/BMW/speed",    1)
+        self.pub_steering = self.create_publisher(Float64, "/BMW/steering", 1)
+        self.pub_finished = self.create_publisher(Bool,
+                                "/BMW/change_lane/finished", 1)
+
+        self.period = 0.1   # 10 Hz
+
+        self.get_logger().info("Behaviors node initialized")
+
+    # =====================================================
+    # Parameter helpers
+    # =====================================================
+
+    def set_nominal_params(self):
+        p = self.nominal_params
+        self.k_rho       = p["k_rho"]
+        self.k_theta     = p["k_theta"]
+        self.max_speed   = p["max_speed"]
+        self.goal_rho_l  = p["goal_rho_l"]
+        self.goal_theta_l = p["goal_theta_l"]
+        self.goal_rho_r  = p["goal_rho_r"]
+        self.goal_theta_r = p["goal_theta_r"]
+
+    # =====================================================
+    # Callbacks
+    # =====================================================
+
+    def cb_action(self, msg):
+        self.action = msg.data
+
+    def cb_left_lane(self, msg):
+        self.lane_rho_l, self.lane_theta_l = msg.data
+
+    def cb_right_lane(self, msg):
+        self.lane_rho_r, self.lane_theta_r = msg.data
+
+    def cb_dist(self, msg):
+        self.measured_dist = msg.data
+
+    def cb_pose(self, msg):
+        self.current_x = msg.x
+        self.current_y = msg.y
+        self.current_a = msg.theta
+
+    def cb_latent_collision(self, msg):
+        self.latent_collision = msg.data
+
+    def cb_counterfactuals(self, msg):
+        self.counterfactuals = msg.data
+        self.get_logger().info(
+            f"Topic /BMW/counterfactuals = {msg.data}")
+
+    # =====================================================
+    # Control helpers
+    # =====================================================
+
+    def calculate_control(self, dist=None):
+        """
+        Proportional lane-tracking control.
+
+        Handles the case where only one lane line is detected:
+          - Both lines detected  → average the two errors
+          - Only left detected   → use left error alone
+          - Only right detected  → use right error alone
+
+        Speed is reduced proportionally to steering magnitude so the car
+        slows down in curves and runs at max speed on straights.
+        When dist is provided, speed is adjusted for car-following instead.
+        """
+        rho_l, theta_l = self.lane_rho_l, self.lane_theta_l
+        rho_r, theta_r = self.lane_rho_r, self.lane_theta_r
+
+        er_l = self.goal_rho_l   - rho_l
+        et_l = self.goal_theta_l - theta_l
+        er_r = rho_r   - self.goal_rho_r
+        et_r = theta_r - self.goal_theta_r
+
+        if rho_l != 0 and rho_r != 0:
+            er = (er_l + er_r) / 2.0
+            et = (et_l + et_r) / 2.0
+        elif rho_l != 0:
+            er, et = er_l, et_l
+        else:
+            er, et = er_r, et_r
+
+        steering = -self.k_rho * er - self.k_theta * et
+
+        if dist is None or dist == float('inf'):
+            speed = self.max_speed * (1.0 - 1.5 * abs(steering))
+        else:
+            speed = self.max_speed + self.k_keeping * (dist - self.desired_dist)
+            speed = max(min(speed, self.max_speed), -10.0)
+
+        return speed, steering
+
+    def turning_steering(self, w, L, v):
+        """
+        Compute steering angle from desired angular velocity w (rad/s),
+        wheelbase L (m), and current speed v (m/s).
+        Kinematic model: w = v * sin(delta) / L
+        """
+        if v == 0:
+            return 0.0
+        k = max(min(L * w / v, 0.5), -0.5)
+        return max(min(math.asin(k), MAX_STEERING), -MAX_STEERING)
+
+    # =====================================================
+    # Maneuver completion helper
+    # =====================================================
+
+    def finish_maneuver(self, label="Maneuver"):
+        """Publish the finished signal once and return to idle."""
+        if not self.finished_published:
+            self.pub_finished.publish(Bool(data=True))
+            self.finished_published = True
+            self.get_logger().info(f"{label} finished")
+        self.state = SM_WAITING_FOR_NEW_TASK
+
+    # =====================================================
+    # FSM
+    # =====================================================
+
+    def main_loop(self):
+
+        self.speed    = 0.0
+        self.steering = 0.0
+
+        # ------------------------------------------------
+        if self.state == SM_INIT:
+            self.state = SM_WAITING_FOR_NEW_TASK
+
+        # ------------------------------------------------
+        elif self.state == SM_WAITING_FOR_NEW_TASK:
+            self.finished_published = False
+
+            if self.action == "cruise":
+                self.state  = SM_CRUISE
+                self.action = None
+            elif self.action == "keep":
+                self.state  = SM_KEEP
+                self.action = None
+            elif self.action == "change_to_left":
+                self.state  = SM_CHANGE_LEFT_1
+                self.action = None
+                self.get_logger().info("Starting change lane to left")
+            elif self.action == "change_to_right":
+                self.state  = SM_CHANGE_RIGHT_1
+                self.action = None
+                self.get_logger().info("Starting change lane to right")
+            elif self.action == "swerve_left":
+                self.state  = SM_SWERVE_LEFT_1
+                self.action = None
+                self.get_logger().info("Starting swerve left")
+            elif self.action == "swerve_right":
+                self.state  = SM_SWERVE_RIGHT_1
+                self.action = None
+                self.get_logger().info("Starting swerve right")
+
+        # ------------------------------------------------
+        # CRUISE — continuous lane tracking at max speed
+        # ------------------------------------------------
+        elif self.state == SM_CRUISE:
+            self.speed, self.steering = self.calculate_control()
+            if self.action and self.action != "cruise":
+                self.state = SM_WAITING_FOR_NEW_TASK
+
+        # ------------------------------------------------
+        # KEEP — car following with distance control.
+        # When no vehicle is detected ahead, measured_dist is None and
+        # calculate_control falls back to cruise automatically (dist=None
+        # branch). No explicit guard needed.
+        # ------------------------------------------------
+        elif self.state == SM_KEEP:
+            self.speed, self.steering = self.calculate_control(
+                dist=self.measured_dist)
+            print(f"Speed in KEEP {self.speed} Steering in KEEP  {self.steering} Distance in KEEP {self.measured_dist}", flush = True)    
+            if self.action and self.action != "keep":
+                self.state = SM_WAITING_FOR_NEW_TASK
+
+        # ------------------------------------------------
+        # CHANGE TO LEFT
+        # Phase 1: steer left until crossing lane midpoint
+        # ------------------------------------------------
+        elif self.state == SM_CHANGE_LEFT_1:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(1.2, 2.9, self.speed)
+            # Right lane y ≈ −1.5; centre ≈ 0 → threshold at −0.7
+            if self.current_y > -0.7:
+                self.get_logger().info(
+                    "Change left phase 1 done — aligning with left lane")
+                self.state = SM_CHANGE_LEFT_2
+
+        # Phase 2: counter-steer to align with left lane (y ≈ +1.5)
+        elif self.state == SM_CHANGE_LEFT_2:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(-1.2, 2.9, self.speed)
+            if self.current_y > 1.0 and abs(self.current_a) < 0.2:
+                self.finish_maneuver("Change lane to left")
+
+        # ------------------------------------------------
+        # CHANGE TO RIGHT
+        # Phase 1: steer right until crossing lane midpoint
+        # ------------------------------------------------
+        elif self.state == SM_CHANGE_RIGHT_1:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(-1.2, 2.9, self.speed)
+            # Left lane y ≈ +1.5; centre ≈ 0 → threshold at +0.7
+            if self.current_y < 0.7:
+                self.get_logger().info(
+                    "Change right phase 1 done — aligning with right lane")
+                self.state = SM_CHANGE_RIGHT_2
+
+        # Phase 2: counter-steer to align with right lane (y ≈ −1.5)
+        elif self.state == SM_CHANGE_RIGHT_2:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(1.2, 2.9, self.speed)
+            if self.current_y < -1.0 and abs(self.current_a) < 0.2:
+                self.finish_maneuver("Change lane to right")
+
+        # ------------------------------------------------
+        # SWERVE LEFT — gentle evasive veer to the left,
+        # stays within the current lane (w=0.5, softer than lane change)
+        # Phase 1: nudge left until y > −1.0
+        # ------------------------------------------------
+        elif self.state == SM_SWERVE_LEFT_1:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(0.5, 2.9, self.speed)
+            if self.current_y > -1.0:
+                self.get_logger().info(
+                    "Swerve left phase 1 done — returning to centre")
+                self.state = SM_SWERVE_LEFT_2
+
+        # Phase 2: counter-steer back to lane centre
+        elif self.state == SM_SWERVE_LEFT_2:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(-1.2, 2.9, self.speed)
+            if self.current_y > 1.0 or abs(self.current_a) < 0.2:
+                self.finish_maneuver("Swerve left")
+
+        # ------------------------------------------------
+        # SWERVE RIGHT — gentle evasive veer to the right
+        # Phase 1: nudge right until y < +1.0
+        # ------------------------------------------------
+        elif self.state == SM_SWERVE_RIGHT_1:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(-0.5, 2.9, self.speed)
+            if self.current_y < 1.0:
+                self.get_logger().info(
+                    "Swerve right phase 1 done — returning to centre")
+                self.state = SM_SWERVE_RIGHT_2
+
+        # Phase 2: counter-steer back to lane centre
+        elif self.state == SM_SWERVE_RIGHT_2:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            self.steering = self.turning_steering(1.2, 2.9, self.speed)
+            if self.current_y < -1.0 or abs(self.current_a) < 0.2:
+                self.finish_maneuver("Swerve right")
+
+        # ------------------------------------------------
+        # UNDOING TURN — abort an in-progress lane change
+        # by steering back to align with the original heading
+        # ------------------------------------------------
+        elif self.state == SM_UNDOING_TURN:
+            if self.speed <= 10.0:
+                self.speed = self.max_speed
+            w = 1.2 if self.current_a < 0.0 else -1.2
+            self.steering = self.turning_steering(w, 2.9, self.speed)
+            if abs(self.current_a) < 0.1:
+                self.set_nominal_params()
+                self.finish_maneuver("Undo turn")
+
+        else:
+            self.get_logger().warn(f"Unknown FSM state: {self.state}")
+
+        # ------------------------------------------------
+        # Counterfactual abort: if a lane change has just
+        # started (phase 1 only) and a collision is detected
+        # while counterfactual reasoning is active, abort it.
+        # ------------------------------------------------
+        undoable_states = (SM_CHANGE_LEFT_1, SM_CHANGE_RIGHT_1)
+        if (self.counterfactuals
+                and self.state in undoable_states
+                and self.latent_collision):
+            self.get_logger().info(
+                f"Collision detected during lane change — aborting "
+                f"(state={self.state}, latent_collision="
+                f"{self.latent_collision})")
+            self.state = SM_UNDOING_TURN
+
+        # ------------------------------------------------
+        # Publish actuator commands every cycle
+        # ------------------------------------------------
+        self.pub_speed.publish(Float64(data=float(self.speed)))
+        self.pub_steering.publish(Float64(data=float(self.steering)))
+
+    # =====================================================
+    # Explicit main loop
+    # =====================================================
+
+    def run(self):
+        while rclpy.ok():
+            start = time.time()
+            rclpy.spin_once(self, timeout_sec=0.01)
+            self.main_loop()
+            remaining = self.period - (time.time() - start)
+            if remaining > 0:
+                time.sleep(remaining)
+
+
+# =====================================================
+# Main
+# =====================================================
+
+def main():
+    rclpy.init()
+    node = BehaviorsNode()
+    try:
+        node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

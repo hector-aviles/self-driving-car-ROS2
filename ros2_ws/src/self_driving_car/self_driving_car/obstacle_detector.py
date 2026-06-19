@@ -121,11 +121,13 @@ class ObstacleDetectorNode(Node):
                 (xyz[:,0] > 2.5) & (xyz[:,0] < 100.0) &
                 (xyz[:,1] < 1.0) & (xyz[:,1] > -1.0)
             ]
-
+            
             if obs_points.shape[0] > 10:
                 distance = numpy.linalg.norm(numpy.mean(obs_points, axis=0))
-                self.pub_obs_dist.publish(Float64(data=float(distance)))
-
+            else:
+                distance = float('inf')  # or 999.0 if behaviours.py can't handle inf                
+            self.pub_obs_dist.publish(Float64(data=float(distance)))
+ 	
         except Exception as e:
             self.get_logger().error(f"Error processing point cloud: {e}")
 
