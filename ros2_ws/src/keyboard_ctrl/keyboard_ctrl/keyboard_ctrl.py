@@ -17,6 +17,10 @@ Key bindings:
 
     q / Ctrl-C  -> quit
 
+Usage:
+    ros2 run decision_making keyboard_ctrl \
+        <speed_left> <speed_right> <speed_citroen>
+
 Synchronization:
 - Lane changes (change_to_left, change_to_right) block further input
   until /BMW/change_lane/finished is received, mirroring action_policy.py.
@@ -33,7 +37,7 @@ Execution model:
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import Bool, Empty, String
+from std_msgs.msg import Bool, Empty, String, Float64
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 
 import sys
@@ -53,8 +57,6 @@ qos_latched = QoSProfile(
 
 
 # ---------------- Key map ----------------
-# Simple single-character keys — robust across all terminals,
-# no escape-sequence parsing needed.
 
 KEY_ACTION_MAP = {
     "e": "cruise",
@@ -72,28 +74,41 @@ QUIT_KEYS = {"q", "Q", "\x03"}   # 'q', 'Q', or Ctrl-C
 
 class KeyboardCtrlNode(Node):
 
-    def __init__(self):
+    def __init__(self, v_left, v_right, v_citroen):
         super().__init__('keyboard_ctrl')
 
-        self.last_action = None
-        self.executing_lane_change = False
-        self.change_lane_finished = False
+        self.v_left    = float(v_left)
+        self.v_right   = float(v_right)
+        self.v_citroen = float(v_citroen)
 
-        # ---- Publishers (mirrors ActionPolicy node) ----
+        self.last_action           = None
+        self.executing_lane_change = False
+        self.change_lane_finished  = False
+
+        # ---- Publishers ----
         self.pub_policy_started = self.create_publisher(
             Empty, "/BMW/policy/started", qos_latched)
-
         self.pub_action = self.create_publisher(
             String, "/BMW/policy/action", qos_latched)
+        self.pub_speed_left = self.create_publisher(
+            Float64, "/vehicles_left_lane/speed", qos_latched)
+        self.pub_speed_right = self.create_publisher(
+            Float64, "/vehicles_right_lane/speed", qos_latched)
+        self.pub_speed_citroen = self.create_publisher(
+            Float64, "/CitroenCZero/speed", qos_latched)
 
-        # ---- Subscriber: needed to clear the lane-change guard ----
+        # ---- Subscriber ----
         self.create_subscription(
             Bool, "/BMW/change_lane/finished",
             self.cb_change_lane_finished, 10)
 
-        self.policy_period = 0.1   # 10 Hz — same as ActionPolicy
+        self.policy_period = 0.1   # 10 Hz
 
-        self.get_logger().info("KeyboardCtrl ready")
+        self.get_logger().info(
+            f"KeyboardCtrl ready  "
+            f"(v_left={self.v_left}, v_right={self.v_right}, "
+            f"v_citroen={self.v_citroen})"
+        )
         self._print_instructions()
 
     # ---------------- Callbacks ----------------
@@ -132,12 +147,16 @@ class KeyboardCtrlNode(Node):
         if action in ("change_to_left", "change_to_right"):
             self.executing_lane_change = True
 
+    def _publish_speeds(self):
+        self.pub_speed_left.publish(Float64(data=self.v_left))
+        self.pub_speed_right.publish(Float64(data=self.v_right))
+        self.pub_speed_citroen.publish(Float64(data=self.v_citroen))
+
     # ---------------- Key reader ----------------
 
     @staticmethod
     def _read_key(fd):
-        """Non-blocking read of a single character from stdin.
-        Returns the character, or None if no key was pressed."""
+        """Non-blocking read of a single character from stdin."""
         if select.select([fd], [], [], 0)[0]:
             return sys.stdin.read(1)
         return None
@@ -155,6 +174,7 @@ class KeyboardCtrlNode(Node):
 
                 # ---- Heartbeat ----
                 self.pub_policy_started.publish(Empty())
+                self._publish_speeds()
 
                 start = time.time()
 
@@ -162,13 +182,11 @@ class KeyboardCtrlNode(Node):
                 rclpy.spin_once(self, timeout_sec=0.0)
 
                 # ---- Lane-change guard ----
-                # Block new commands until the maneuver is complete,
-                # exactly as action_policy.py does.
                 if self.executing_lane_change:
                     if self.change_lane_finished:
                         self.get_logger().info("Lane change finished")
                         self.executing_lane_change = False
-                        self.change_lane_finished = False
+                        self.change_lane_finished  = False
                     self._sleep_remaining(start)
                     continue
 
@@ -182,8 +200,6 @@ class KeyboardCtrlNode(Node):
                 if key in KEY_ACTION_MAP:
                     self._publish_action(KEY_ACTION_MAP[key])
                 elif key is not None:
-                    # Unknown key: re-publish last action to keep the
-                    # car doing something sensible, and hint to the user.
                     print(f"  (unknown key '{key}' — ignored)", flush=True)
 
                 self._sleep_remaining(start)
@@ -200,10 +216,22 @@ class KeyboardCtrlNode(Node):
 
 # ---------------- Main ----------------
 
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
 
-    node = KeyboardCtrlNode()
+    if len(sys.argv) != 4:
+        print(
+            "Usage:\n"
+            "  ros2 run decision_making keyboard_ctrl "
+            "<speed_left> <speed_right> <speed_citroen>"
+        )
+        sys.exit(1)
+
+    v_left    = sys.argv[1]
+    v_right   = sys.argv[2]
+    v_citroen = sys.argv[3]
+
+    node = KeyboardCtrlNode(v_left, v_right, v_citroen)
     try:
         node.run()
     except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):
@@ -213,7 +241,7 @@ def main():
         try:
             rclpy.shutdown()
         except Exception:
-            pass   # already shut down by ROS2 internals
+            pass
 
 
 if __name__ == "__main__":

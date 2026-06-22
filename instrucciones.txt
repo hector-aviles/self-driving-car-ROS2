@@ -6,6 +6,12 @@ ros2 pkg create \
   self_driving_car \
   --dependencies rclpy geometry_msgs webots_ros2_driver sensor_msgs std_msgs rosgraph_msgs 
 
+ros2 pkg create \
+  --build-type ament_python \
+  --license Apache-2.0 \
+  keyboard_ctrl \
+  --dependencies rclpy geometry_msgs webots_ros2_driver sensor_msgs std_msgs rosgraph_msgs 
+
 2. Then manually add the missing dependencies in package.xml
 
 <exec_depend>cv_bridge</exec_depend>

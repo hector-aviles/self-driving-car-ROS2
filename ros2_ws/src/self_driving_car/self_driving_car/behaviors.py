@@ -65,9 +65,14 @@ class BehaviorsNode(Node):
         self.k_rho        = 0.001
         self.k_theta      = 0.01
         self.max_speed    = 30.0
+        # HHAA
+        '''
         self.k_keeping    = 10.0
         self.desired_dist = 30.0   # desired gap to the car ahead (m)
-
+        '''
+        self.k_keeping    = 3.0
+        self.desired_dist = 15.0   # desired gap to the car ahead (m)
+                 
         # Nominal (centre-of-lane) goal parameters — restored after swerves
         self.nominal_params = dict(
             k_rho        = 0.001,
@@ -164,8 +169,8 @@ class BehaviorsNode(Node):
             self.goal_theta_l = 2.37
             self.goal_rho_r   = 508.0
             self.goal_theta_r = 1.16
-            #self.state = SM_SWERVE_LEFT
-            self.get_logger().info("Swerve left: goal parameters updated")
+            self.state = SM_SWERVE_LEFT
+            #self.get_logger().info("Swerve left: goal parameters updated")
 
         elif action == "swerve_right":
             # Same idea — shift goals to the right
@@ -175,7 +180,7 @@ class BehaviorsNode(Node):
             self.goal_rho_r   = 300.0
             self.goal_theta_r = 0.57
             self.state = SM_SWERVE_RIGHT            
-            self.get_logger().info("Swerve right: goal parameters updated")
+            #self.get_logger().info("Swerve right: goal parameters updated")
 
         elif action == "change_to_left":
             self.set_nominal_params()
@@ -251,7 +256,9 @@ class BehaviorsNode(Node):
             speed = self.max_speed * (1.0 - 1.5 * abs(steering))
         else:
             speed = self.max_speed + self.k_keeping * (dist - self.desired_dist)
-            speed = max(min(speed, self.max_speed), -10.0)
+            # HHAA 
+            #speed = max(min(speed, self.max_speed), -10.0)
+            speed = max(min(speed, self.max_speed), 0.0)
 
         return speed, steering
 
@@ -309,22 +316,18 @@ class BehaviorsNode(Node):
         elif self.state == SM_KEEP:
             self.speed, self.steering = self.calculate_control(
                 dist=self.measured_dist)
-            self.get_logger().debug(
-                f"KEEP — speed={self.speed:.1f}  steering={self.steering:.3f}"
-                f"  dist={self.measured_dist}")
 
         # --------------------------------------------------------------------
         # CHANGE TO LEFT
         # Phase 1: steer left until crossing lane midpoint (y > −0.7)
         # --------------------------------------------------------------------
         elif self.state == SM_CHANGE_LEFT_1:
+            
             if self.speed <= 10.0:
                 self.speed = self.max_speed
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             # Right lane y ≈ −1.5; centre ≈ 0 → threshold at −0.7
             if self.current_y > -0.7:
-                self.get_logger().info(
-                    "Change left phase 1 done — aligning with left lane")
                 self.state = SM_CHANGE_LEFT_2
 
         # Phase 2: counter-steer to align with left lane (y ≈ +1.5)
@@ -345,8 +348,6 @@ class BehaviorsNode(Node):
             self.steering = self.turning_steering(-1.2, 2.9, self.speed)
             # Left lane y ≈ +1.5; centre ≈ 0 → threshold at +0.7
             if self.current_y < 0.7:
-                self.get_logger().info(
-                    "Change right phase 1 done — aligning with right lane")
                 self.state = SM_CHANGE_RIGHT_2
 
         # Phase 2: counter-steer to align with right lane (y ≈ −1.5)
@@ -357,17 +358,18 @@ class BehaviorsNode(Node):
             if self.current_y < -1.0 and abs(self.current_a) < 0.2:
                 self.finish_maneuver("Change lane to right")
   
+           
         # ------------------------------------------------
         # SWERVE RIGHT — gentle evasive veer to the right
         # ------------------------------------------------
         elif self.state == SM_SWERVE_RIGHT:
-           self.speed = self.max_speed * 2
+            self.speed, self.steering = self.calculate_control()
            
         # ------------------------------------------------
         # SWERVE LEFT — gentle evasive veer to the left
         # ------------------------------------------------           
         elif self.state == SM_SWERVE_LEFT:
-           self.speed = self.max_speed * 2
+            self.speed, self.steering = self.calculate_control()
 
         # --------------------------------------------------------------------
         # UNDOING TURN — abort an in-progress lane change by steering back
@@ -403,6 +405,12 @@ class BehaviorsNode(Node):
         # --------------------------------------------------------------------
         self.pub_speed.publish(Float64(data=float(self.speed)))
         self.pub_steering.publish(Float64(data=float(self.steering)))
+        
+        '''
+        self.get_logger().debug(
+            f"self.state — speed={self.speed:.1f}  steering={self.steering:.3f}"
+            f"  dist={self.measured_dist}")
+        '''    
 
     # ================================================= Explicit main loop ===
 
