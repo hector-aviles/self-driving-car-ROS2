@@ -1,0 +1,119 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.04033592816388773 -0.8780204379775088 -0.47692045814049633 6.091126765656695
+  position -30.437622726961344 0.6772416784311286 10.736808272544664
+}
+StraightRoadSegment {
+  width 11
+  length 300
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 -7.446951617798324e-11
+  hidden position2_0_0 -6.227674989365916e-05
+  hidden position_0_1 1.1318177220358562e-10
+  hidden position2_0_1 -3.377539289177962e-05
+  hidden position_0_2 0.20324852365648152
+  hidden position_0_3 -3.708143537865273
+  hidden linearVelocity_0 3.952029259955598e-05 -3.560646490601667e-07 7.227986816727146e-06
+  hidden angularVelocity_0 7.429559069658565e-07 8.146721130600199e-05 1.1386663720126027e-09
+  hidden translation_1 0 0 0
+  hidden rotation_1 -3.7234758088965004e-11 0.9999999999992851 1.1957835995138176e-06 6.22767501286377e-05
+  hidden linearVelocity_1 3.5406170950940896e-05 -3.179073247088899e-07 -3.1907843154680462e-06
+  hidden angularVelocity_1 7.659965492614454e-07 8.438009512794216e-05 1.0824892513767878e-09
+  hidden translation_2 0 0 0
+  hidden rotation_2 -5.659088610147506e-11 -0.9999999999943852 -3.351012749276919e-06 3.3775394157113436e-05
+  hidden linearVelocity_2 3.540724620727387e-05 -3.1791532913114413e-07 -3.1944636374784302e-06
+  hidden angularVelocity_2 7.659931679043827e-07 8.438072363607262e-05 1.1665962350037564e-09
+  hidden translation_3 0 0 0
+  hidden rotation_3 0 -1 0 0.20324852365648247
+  hidden linearVelocity_3 3.734515187926655e-05 -3.3671208818821893e-07 2.7604414135028623e-06
+  hidden angularVelocity_3 8.908009904987262e-07 9.998234638228244e-05 1.1433013663586598e-09
+  hidden translation_4 0 0 0
+  hidden rotation_4 0 -0.9999999999999999 0 3.708143537865273
+  hidden linearVelocity_4 3.734634993474272e-05 -3.3672019788139833e-07 2.7567593366089505e-06
+  hidden angularVelocity_4 8.907772126151735e-07 9.998555137007401e-05 1.1432037904664127e-09
+  translation 15.294219667514218 -1.05391772708066 0.3169447284499723
+  rotation -0.0019611194679646526 -0.489299266836714 -0.8721137434322924 0.009154615547030568
+  color 0.643137 0 0
+  name "BMW_X5"
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    Lidar {
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      numberOfLayers 32
+      minRange 0.05
+      maxRange 30
+      noise 0.02
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

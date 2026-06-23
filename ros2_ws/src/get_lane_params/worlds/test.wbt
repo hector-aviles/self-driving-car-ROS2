@@ -1,0 +1,222 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/bmw/BmwX5.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/geometries/protos/TexturedBox.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a31.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/smartmicro/protos/SmsUmrr-0a29.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/lincoln/LincolnMKZSimple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3Simple.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/citroen/CitroenCZero.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/RoadLine.proto"
+
+WorldInfo {
+  ERP 0.6
+  basicTimeStep 10
+  lineScale 5
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    ContactProperties {
+      material2 "CitroenCZeroWheels"
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.031859202267191425 -0.9341266972329474 0.3555169542336395 6.091904330959901
+  position 0.3523780099540419 5.125401377076397 16.951166049490766
+}
+
+# -----------------------------------------------------------------
+# Road layout — single StraightRoadSegment, 4 lanes
+#
+# Cross-section (y axis, looking forward along +x):
+#
+#  Lane 1 (left shoulder) | Lane 2 (left travel) | Lane 3 (right travel) | Lane 4 (right shoulder)
+#       3.0 m             |       3.65 m          |        3.65 m         |        3.0 m
+#                continuous|               dashed  |continuous
+#
+# Total width: 3.0 + 3.65 + 3.65 + 3.0 = 13.3 m
+#
+# Lane centres (measured from road centre y=0):
+#   Lane 1 left shoulder  : y = +(3.65+3.65)/2 + 3.0/2  = +5.15 m  (not used by traffic)
+#   Lane 2 left travel    : y = +3.65/2                  = +1.825 m
+#   Lane 3 right travel   : y = -3.65/2                  = -1.825 m
+#   Lane 4 right shoulder : y = -(3.65+3.65)/2 - 3.0/2  = -5.15 m  (not used by traffic)
+#
+# Note: Webots lane width must be uniform across the segment.
+# To approximate shoulder (3.0m) + travel (3.65m) with a single
+# uniform lane width we use 3.325m average, which gives a visually
+# close result. For exact widths, use two superimposed roads (see
+# comment at bottom of file).
+# -----------------------------------------------------------------
+
+StraightRoadSegment {
+  translation 0 0 0
+  width 13.3
+  numberOfLanes 4
+  numberOfForwardLanes 4
+  lines [
+    RoadLine {
+      type "continuous"
+      color 1 1 1
+    }
+    RoadLine {
+      type "dashed"
+      color 1 1 1
+    }
+    RoadLine {
+      type "continuous"
+      color 1 1 1
+    }
+  ]
+  rightBarrier TRUE
+  leftBarrier TRUE
+  length 300
+  startLine [
+    ""
+    ""
+    ""
+    ""
+  ]
+  roadBoundingObject TRUE
+  rightBorderBoundingObject TRUE
+  leftBorderBoundingObject TRUE
+}
+
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+
+# -----------------------------------------------------------------
+# Vehicles
+#
+# BMW X5       — right travel lane (y = -1.825), starting at x=15
+# Tesla Model3 — right travel lane (y = -1.825), ahead at x=36
+# Lincoln MKZ  — right travel lane (y = -1.825), ahead at x=55
+# CitroenCZero — left  travel lane (y = +1.825), coming the other
+#                way from x=117 (rotation π around z)
+# -----------------------------------------------------------------
+
+DEF BMW_X5 BmwX5 {
+  hidden position_0_0 -7.134397893561729e-11
+  hidden position2_0_0 -1.5272434065938807e-05
+  hidden position_0_1 1.0835418411244943e-10
+  hidden position2_0_1 -1.2021471236566943e-05
+  hidden position_0_2 0.20427885630528733
+  hidden position_0_3 -3.7076049905010646
+  hidden linearVelocity_0 6.451588226513905e-14 -7.59484374714206e-15 2.4370863305176965e-15
+  hidden angularVelocity_0 -1.77283133214675e-15 7.15300495713956e-15 1.6135393536447611e-15
+  hidden translation_1 0 0 0
+  hidden rotation_1 -3.567198946741943e-11 0.999999999989089 4.671421636225381e-06 1.5272432659332385e-05
+  hidden linearVelocity_1 -3.323372834367152e-14 -1.6358516914386492e-15 -1.030212474755919e-16
+  hidden angularVelocity_1 -1.329439366216253e-15 -1.3541724462601026e-14 1.541219586988811e-15
+  hidden translation_2 0 0 0
+  hidden rotation_2 -5.4177092054024014e-11 -0.9999999999593795 -9.013387960131792e-06 1.2021460421672672e-05
+  hidden linearVelocity_2 -5.87571187252852e-14 -2.154722656117726e-17 1.811597907225119e-16
+  hidden angularVelocity_2 -5.021425909813317e-15 -2.8860016269634096e-14 1.5402277442862763e-15
+  hidden translation_3 0 0 0
+  hidden rotation_3 0 -1 0 0.2042788563052882
+  hidden linearVelocity_3 -7.132375234244473e-14 1.1377974788906592e-15 1.5726679218156884e-15
+  hidden angularVelocity_3 -9.913499504322372e-16 -1.5007933474260183e-13 1.3634823684301325e-15
+  hidden translation_4 0 0 0
+  hidden rotation_4 0 -1 0 3.7076049905010646
+  hidden linearVelocity_4 -1.749329121732126e-14 1.0392916743291958e-14 9.663381206337361e-16
+  hidden angularVelocity_4 -7.009597909130262e-16 -1.1973824212639786e-13 1.664582196858066e-15
+  translation 15.28 -1.825 0.3169256723618385
+  rotation -0.0019673811448851952 -0.48686180575429383 -0.8734767950604636 0.009214468287340138
+  color 0.643137 0 0
+  name "BMW_X5"
+  controller "bmw_x5_controller"
+  windshieldWipers FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a31 {
+    }
+  ]
+  sensorsSlotTop [
+    Accelerometer {
+    }
+    Camera {
+      translation 0.8 0 -0.1
+      rotation 0 1 0 0.07
+      boundingObject TexturedBox {
+      }
+      width 1280
+      height 960
+      noise 0.02
+    }
+    Lidar {
+      translation 0.3 0 0.15
+      name "Velodyne HDL-64E"
+      horizontalResolution 4500
+      fieldOfView 6.28318530718
+      verticalFieldOfView 0.4677
+      numberOfLayers 32
+      minRange 0.05
+      maxRange 30
+      noise 0.02
+    }
+  ]
+  interior FALSE
+  dynamicSpeedDisplay FALSE
+  indicatorLevers FALSE
+  completeInterior FALSE
+  shifter FALSE
+}
+
+# Tesla Model 3 — right travel lane, between BMW and Lincoln
+DEF vehicle_2 TeslaModel3Simple {
+  translation 36.29 -1.825 0.4
+  color 1 0.5 0
+  name "vehicle_2"
+}
+
+# Lincoln MKZ — right travel lane, furthest ahead
+DEF vehicle_1 LincolnMKZSimple {
+  translation 55.13 -1.825 0.45
+  color 0.2 0.5 0.8
+  name "vehicle_1"
+}
+
+# Citroen CZero — left travel lane, coming from ahead (rotated π)
+DEF CitroenCZero_1 CitroenCZero {
+  hidden translation_1 0 0 0
+  hidden rotation_1 9.318752756982904e-09 -0.9999999999999376 3.530641785603534e-07 0.329145231369746
+  hidden translation_2 0 0 0
+  hidden rotation_2 -9.318469324591186e-09 0.9999999999999206 3.9810462795749187e-07 0.29137967421083344
+  hidden translation_3 0 0 0
+  hidden rotation_3 0 -1 0 0.005894275851789765
+  hidden translation_4 0 0 0
+  hidden rotation_4 0 1 0 0.0050801490867819305
+  translation 116.95 1.825 0.18045429027813303
+  rotation 0.0025185802695616754 8.060046296804302e-05 0.9999968251234557 -3.141574768968839
+  name "CitroenCZero_1"
+  controller "CitroenCZero_controller"
+  synchronization FALSE
+  sensorsSlotFront [
+    SmsUmrr-0a29 {
+    }
+  ]
+}
+
+Robot {
+  controller "supervisor"
+  supervisor TRUE
+}

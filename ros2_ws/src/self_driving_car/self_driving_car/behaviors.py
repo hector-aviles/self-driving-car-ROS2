@@ -165,10 +165,16 @@ class BehaviorsNode(Node):
             # car gently to the left within its lane — no FSM state change.
             # The current cruise / keep state keeps running with the new goals.
             self.max_speed    = 30.0
+            '''
             self.goal_rho_l   = 385.0
             self.goal_theta_l = 2.37
             self.goal_rho_r   = 508.0
             self.goal_theta_r = 1.16
+            '''
+            self.goal_rho_l   = 309.442
+            self.goal_theta_l = 2.570
+            self.goal_rho_r   = 512.341
+            self.goal_theta_r = 1.209            
             self.state = SM_SWERVE_LEFT
             #self.get_logger().info("Swerve left: goal parameters updated")
 
@@ -194,12 +200,14 @@ class BehaviorsNode(Node):
 
         else:
             self.get_logger().warn(f"Unknown action: '{action}'")
-
+            
+    
     def cb_left_lane(self, msg):
         self.lane_rho_l, self.lane_theta_l = msg.data
 
     def cb_right_lane(self, msg):
         self.lane_rho_r, self.lane_theta_r = msg.data
+     
 
     def cb_dist(self, msg):
         # inf means no obstacle detected (sentinel from obstacle_detector)
@@ -327,7 +335,9 @@ class BehaviorsNode(Node):
                 self.speed = self.max_speed
             self.steering = self.turning_steering(1.2, 2.9, self.speed)
             # Right lane y ≈ −1.5; centre ≈ 0 → threshold at −0.7
+            print(f"self.current_y {self.current_y} self.steering {self.steering}", flush = True)
             if self.current_y > -0.7:
+                print("Changed to SM_CHANGE_LEFT_2", flush = True) 
                 self.state = SM_CHANGE_LEFT_2
 
         # Phase 2: counter-steer to align with left lane (y ≈ +1.5)
@@ -335,6 +345,7 @@ class BehaviorsNode(Node):
             if self.speed <= 10.0:
                 self.speed = self.max_speed
             self.steering = self.turning_steering(-1.2, 2.9, self.speed)
+            print(f"self.current_y {self.current_y} self.steering {self.steering}", flush = True)
             if self.current_y > 1.0 and abs(self.current_a) < 0.2:
                 self.finish_maneuver("Change lane to left")
 
