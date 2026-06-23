@@ -75,3 +75,15 @@ ros2 run decision_making counterfactuals 0 -7 0 counterfactuals_90_percent_rep_5
 
 ros2 launch self_driving_car t_bone_2.py
 ros2 run decision_making counterfactuals 0 7 0 counterfactuals_90_percent_rep_5.csv counterfactuals_combinations_random_choices.csv
+
+
+###########################################
+
+ros2 launch self_driving_car head_on_1.py
+ros2 run keyboard_ctrl keyboard_ctrl 0 3 7
+
+############################################
+
+ros2 launch get_lane_params reference.py
+ros2 run get_lane_params 
+
